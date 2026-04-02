@@ -1,97 +1,56 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "Cod-ES — Programá Arduino en español"
+description: "La librería de Arduino que traduce toda la sintaxis al español. Ideal para estudiantes, educadores y programadores hispanohablantes."
 ---
 
-## Setting up
+Cod-ES es una librería para Arduino que te permite escribir código usando palabras en español. En lugar de `setup`, `loop`, `if`, y `digitalWrite`, usás `inicio`, `bucle`, `si`, y `salidaDigital`. No necesitás aprender inglés para programar Arduino.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={2}>
+  <Card title="Instalación" icon="download" href="/installation">
+    Descargá e instalá Cod-ES en el IDE de Arduino en minutos.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Inicio rápido" icon="rocket" href="/quickstart">
+    Escribí tu primer programa en español con un ejemplo de parpadeo de LED.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Referencia del lenguaje" icon="book" href="/reference/control-flow">
+    Consultá todas las traducciones de funciones, tipos y constantes.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Módulos opcionales" icon="puzzle-piece" href="/modules/serial">
+    Serie, Servo, LED RGB, motor PAP, EEPROM, LCD I2C, ultrasónico y más.
   </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## ¿Qué incluye Cod-ES?
 
-Everything you need to create world-class documentation.
+<CardGroup cols={2}>
+  <Card title="Estructuras de control" icon="code-branch" href="/reference/control-flow">
+    `si`, `si_no`, `repetir`, `mientras`, `elegir` y más — todo en español.
+  </Card>
+  <Card title="Tipos de datos" icon="database" href="/reference/data-types">
+    `entero`, `flotante`, `booleano`, `cadena`, `Cadena` y modificadores.
+  </Card>
+  <Card title="Pines y E/S" icon="microchip" href="/reference/pins">
+    `configurarEntrada`, `configurarSalida`, `leerPin`, `encender`, `apagar`.
+  </Card>
+  <Card title="Funciones matemáticas" icon="calculator" href="/reference/math">
+    `absoluto`, `raizCuadrada`, `seno`, `coseno`, `aleatorio` y más.
+  </Card>
+</CardGroup>
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Empezar en tres pasos
 
-## Need inspiration?
+<Steps>
+  <Step title="Descargá la librería">
+    Descargá el repositorio como ZIP desde [GitHub](https://github.com/FrancoMartino/cod-es).
+  </Step>
+  <Step title="Instalá en el IDE de Arduino">
+    En el IDE de Arduino, abrí **Sketch → Include Library → Add .ZIP Library...** y seleccioná el archivo descargado.
+  </Step>
+  <Step title="Incluí la librería en tu sketch">
+    Agregá `#include <Cod-ES.h>` al comienzo de tu programa y empezá a programar en español.
+  </Step>
+</Steps>
 
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<Tip>
+  Para usar módulos opcionales como la comunicación serie o servomotores, definí el módulo antes de incluir la librería. Por ejemplo: `#define INCLUIR_SERIE` antes de `#include <Cod-ES.h>`.
+</Tip>

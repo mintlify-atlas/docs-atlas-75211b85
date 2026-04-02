@@ -1,0 +1,222 @@
+---
+title: "Ejemplos de motores y displays"
+description: "Ejemplos de hardware avanzado en Cod-ES: motor paso a paso controlado con potenciómetro y display LCD I2C."
+---
+
+Estos ejemplos muestran cómo usar Cod-ES con hardware de mayor complejidad: motores paso a paso (PAP) y pantallas LCD con interfaz I2C. Cada módulo se activa con una directiva `#define` antes de incluir la librería.
+
+## Motor PAP (paso a paso)
+
+Controla la posición de un motor paso a paso en función del valor leído de un potenciómetro conectado al pin analógico A0. El motor se mueve solo la diferencia entre la posición actual y la anterior.
+
+<Note>
+  Conecta el motor paso a paso a los pines **8, 9, 10 y 11** mediante un driver de motor (por ejemplo, ULN2003 para motores 28BYJ-48 o similar). Conecta el potenciómetro entre **5 V**, **GND** y la patilla central al pin **A0**.
+</Note>
+
+<Warning>
+  Este ejemplo requiere activar el módulo Motor PAP. Agrega `#define INCLUIR_MOTOR_PAP` antes de `#include <Cod-ES.h>`.
+</Warning>
+
+```cpp MotorPAP.ino
+// Incluye la librería Cod-ES
+#define INCLUIR_MOTOR_PAP
+
+#include <Cod-ES.h>
+
+constante entero PASOS = 100;
+
+MotorPAP motor(PASOS, 8, 9, 10, 11); // Crear un objeto con la clase MotorPAP.
+
+entero previo = 0; // Variable para almacenar la ultima posición del motor PAP.
+
+inicio
+  motor.ajustarVelocidad(30); // Configurar la velocidad del motor PAP.
+fin
+
+bucle
+  entero valor = leerPin(0, ANALOGICO); // Variable para almacenar el valor enviado desde el motor PAP.
+
+  motor.paso(valor - previo); // Hacer un paso del motor.
+  previo = valor; // Almacenar el valor para tener el valor previo en el proximo ciclo.
+fin
+```
+
+### Diagrama de conexión
+
+<Steps>
+  <Step title="Driver del motor → pines 8, 9, 10 y 11">
+    Las cuatro entradas de control del driver (IN1, IN2, IN3, IN4 en el ULN2003) se conectan a los pines 8, 9, 10 y 11 respectivamente. El driver se alimenta con 5 V y GND independientes.
+  </Step>
+  <Step title="Potenciómetro → A0">
+    El pin central (cursor) del potenciómetro va al pin A0. Los extremos van a 5 V y GND. Girando el potenciómetro se controla la posición del motor.
+  </Step>
+</Steps>
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="#define INCLUIR_MOTOR_PAP">
+    Activa el módulo `MotorPAP` de Cod-ES, que envuelve la clase `Stepper` de Arduino en español. Debe declararse antes de `#include <Cod-ES.h>`.
+  </Step>
+  <Step title="constante entero PASOS = 100">
+    Define el número de pasos por revolución del motor. `constante` equivale a `const` en Arduino estándar. Este valor depende del motor físico utilizado (un 28BYJ-48 tiene 2048 pasos por revolución en modo completo).
+  </Step>
+  <Step title="MotorPAP motor(PASOS, 8, 9, 10, 11)">
+    Crea un objeto de la clase `MotorPAP`. Los argumentos son: pasos por revolución y los cuatro pines de control del motor en el driver.
+  </Step>
+  <Step title="motor.ajustarVelocidad(30)">
+    Equivale a `stepper.setSpeed(30)`. Configura la velocidad del motor en RPM. A mayor valor, más rápido gira el motor (dentro de los límites físicos del hardware).
+  </Step>
+  <Step title="entero valor = leerPin(0, ANALOGICO)">
+    Lee el valor del potenciómetro en el pin A0 (especificado como `0`). El valor está entre 0 y 1023.
+  </Step>
+  <Step title="motor.paso(valor - previo)">
+    Equivale a `stepper.step(valor - previo)`. Mueve el motor el número de pasos igual a la diferencia entre la posición actual del potenciómetro y la anterior. Si no hubo cambio, el motor no se mueve. Un valor negativo gira en sentido contrario.
+  </Step>
+  <Step title="previo = valor">
+    Guarda el valor actual como referencia para el próximo ciclo, de modo que solo se mueva la diferencia incremental.
+  </Step>
+</Steps>
+
+---
+
+## LCD I2C
+
+Muestra texto en una pantalla LCD 16x2 conectada por el bus I2C. Al iniciar la placa, enciende el backlight y escribe "!Hola, mundo!" en la primera fila.
+
+<Note>
+  Conecta el módulo **LCD I2C** de la siguiente manera: **SDA** al pin **A4**, **SCL** al pin **A5**, **VCC** a **5 V** y **GND** a **GND**. La dirección I2C predeterminada es `0x27` (puede variar según el módulo; usa un escáner I2C si no funciona).
+</Note>
+
+<Warning>
+  Este ejemplo requiere activar el módulo LCD I2C. Agrega `#define INCLUIR_LCD_I2C` antes de `#include <Cod-ES.h>`.
+</Warning>
+
+```cpp LCD.ino
+// Incluye la librería Cod-ES
+#define INCLUIR_LCD_I2C
+
+#include <Cod-ES.h>
+
+LCD_I2C lcd(0x27,16,2); // Crear un objeto con la clase LCD_I2C.
+
+inicio
+  lcd.inicializar(); // Iniciar la comunicación con el display LCD.
+  lcd.encenderLuz(); // Encender luz del display LCD.
+  lcd.ajustarCursor(1,0); // Posiciono el cursor en x:1, y:0.
+  lcd.imprimirCadena("!Hola, mundo!"); // Imprimo en el display "!Hola, mundo!".
+fin
+
+bucle
+fin
+```
+
+### Diagrama de conexión del módulo I2C
+
+<Steps>
+  <Step title="GND → GND">
+    Referencia de tierra compartida entre el módulo y la placa Arduino.
+  </Step>
+  <Step title="VCC → 5 V">
+    Alimentación del módulo LCD I2C.
+  </Step>
+  <Step title="SDA → pin A4">
+    Línea de datos del bus I2C. En Arduino Uno y Nano, SDA está en el pin A4.
+  </Step>
+  <Step title="SCL → pin A5">
+    Línea de reloj del bus I2C. En Arduino Uno y Nano, SCL está en el pin A5.
+  </Step>
+</Steps>
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="#define INCLUIR_LCD_I2C">
+    Activa el módulo `LCD_I2C` de Cod-ES. Debe declararse antes de `#include <Cod-ES.h>`.
+  </Step>
+  <Step title="LCD_I2C lcd(0x27, 16, 2)">
+    Crea un objeto de la clase `LCD_I2C`. Los argumentos son: dirección I2C del módulo (`0x27`), número de columnas (16) y número de filas (2). Ajusta la dirección si tu módulo usa `0x3F` u otra.
+  </Step>
+  <Step title="lcd.inicializar()">
+    Inicializa la comunicación I2C con el display y lo prepara para recibir texto. Debe llamarse en `inicio` antes de cualquier otra operación sobre el LCD.
+  </Step>
+  <Step title="lcd.encenderLuz()">
+    Enciende el backlight (retroiluminación) del display. Por defecto el backlight está apagado tras la inicialización.
+  </Step>
+  <Step title="lcd.ajustarCursor(1, 0)">
+    Posiciona el cursor en la columna 1, fila 0 (segunda columna, primera fila). Los índices comienzan en 0. Equivale a `lcd.setCursor(1, 0)` en la librería LiquidCrystal_I2C estándar.
+  </Step>
+  <Step title='lcd.imprimirCadena("!Hola, mundo!")'>
+    Escribe la cadena de texto en la posición actual del cursor. Equivale a `lcd.print("!Hola, mundo!")`.
+  </Step>
+  <Step title="bucle (vacío)">
+    El bloque `bucle` está vacío porque el ejemplo solo escribe el mensaje una vez al inicio. El LCD retiene el contenido mientras esté alimentado.
+  </Step>
+</Steps>
+
+<Tip>
+  Si la pantalla muestra cuadros en lugar de texto, ajusta el contraste girando el potenciómetro del módulo I2C con un destornillador pequeño. Si no aparece nada, verifica la dirección I2C con un escáner y actualiza el valor `0x27` en el constructor.
+</Tip>
+
+---
+
+## Plantilla
+
+El archivo `Plantilla.ino` es el punto de partida recomendado para crear nuevos sketches con Cod-ES. Incluye la librería y define los bloques mínimos `inicio` y `bucle` con comentarios guía.
+
+```cpp Plantilla.ino
+// Incluye la librería Cod-ES
+#include <Cod-ES.h>
+
+inicio
+  // Pon tu código de configuración aquí, para que se ejecute una vez
+  
+fin
+
+bucle
+  // Pon tu código principal aquí, para que se ejecute repetidamente
+  
+fin
+```
+
+<Tip>
+  Para usar módulos opcionales (Servo, Serie, Ultrasonico, MotorPAP, LCD_I2C), agrega el `#define` correspondiente antes de `#include <Cod-ES.h>`:
+
+  ```cpp
+  #define INCLUIR_SERVO
+  #define INCLUIR_SERIE
+  #define INCLUIR_ULTRASONICO
+  #define INCLUIR_MOTOR_PAP
+  #define INCLUIR_LCD_I2C
+  #include <Cod-ES.h>
+  ```
+</Tip>
+
+---
+
+## Referencia de módulos opcionales
+
+| `#define` | Clase habilitada | Descripción |
+|-----------|-----------------|-------------|
+| `INCLUIR_SERVO` | `Servo` | Control de servomotores |
+| `INCLUIR_SERIE` | `Serie` | Comunicación serial (USB) |
+| `INCLUIR_ULTRASONICO` | `Ultrasonico` | Sensor ultrasónico HC-SR04 |
+| `INCLUIR_MOTOR_PAP` | `MotorPAP` | Motor paso a paso |
+| `INCLUIR_LCD_I2C` | `LCD_I2C` | Display LCD con interfaz I2C |
+
+## Referencia rápida de palabras clave usadas
+
+| Cod-ES | Arduino estándar | Descripción |
+|--------|-----------------|-------------|
+| `constante entero` | `const int` | Constante de tipo entero |
+| `entero` | `int` | Tipo de dato entero |
+| `leerPin(pin, ANALOGICO)` | `analogRead(pin)` | Lee un valor analógico (0–1023) |
+| `motor.ajustarVelocidad(rpm)` | `stepper.setSpeed(rpm)` | Configura velocidad del motor PAP |
+| `motor.paso(n)` | `stepper.step(n)` | Mueve el motor n pasos |
+| `lcd.inicializar()` | `lcd.init()` | Inicializa el display LCD |
+| `lcd.encenderLuz()` | `lcd.backlight()` | Enciende el backlight del LCD |
+| `lcd.ajustarCursor(x, y)` | `lcd.setCursor(x, y)` | Posiciona el cursor en el LCD |
+| `lcd.imprimirCadena(s)` | `lcd.print(s)` | Escribe texto en el LCD |
+| `inicio` | `void setup(){` | Bloque de configuración inicial |
+| `bucle` | `void loop(){` | Bloque de ejecución continua |
+| `fin` / `cerrar` | `}` | Cierre de bloque |

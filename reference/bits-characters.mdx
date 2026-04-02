@@ -1,0 +1,225 @@
+---
+title: "Bits, caracteres e interrupciones"
+description: "Operaciones a nivel de bits, funciones de clasificación de caracteres y control de interrupciones externas."
+---
+
+Este módulo agrupa tres áreas de bajo nivel: manipulación de bits, clasificación de caracteres ASCII e interrupciones de hardware.
+
+## Operaciones de bits
+
+Estas funciones operan directamente sobre los bits de una variable entera.
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `leerBits(data, clock, bitOrder)` | `shiftIn(...)` | Lee un byte de datos bit a bit desde un pin |
+| `enviarBits(data, clock, bitOrder, value)` | `shiftOut(...)` | Envía un byte de datos bit a bit por un pin |
+| `limpiarBit(x, n)` | `bitClear(x, n)` | Pone a 0 el bit `n` de la variable `x` |
+| `leerBit(x, n)` | `bitRead(x, n)` | Lee el valor del bit `n` de la variable `x` |
+| `establecerBit(x, n)` | `bitSet(x, n)` | Pone a 1 el bit `n` de la variable `x` |
+| `escribirBit(x, n, b)` | `bitWrite(x, n, b)` | Escribe el valor `b` en el bit `n` de `x` |
+| `byteAlto(w)` | `highByte(w)` | Extrae el byte más significativo de una palabra |
+| `byteBajo(w)` | `lowByte(w)` | Extrae el byte menos significativo de una palabra |
+
+### Lectura y escritura de bits individuales
+
+```cpp
+byte flags = 0b00000000;
+
+// Establecer el bit 3
+establecerBit(flags, 3);    // flags = 0b00001000
+
+// Leer el bit 3
+entero valor = leerBit(flags, 3);  // 1
+
+// Limpiar el bit 3
+limpiarBit(flags, 3);       // flags = 0b00000000
+
+// Escribir un valor específico en el bit 5
+escribirBit(flags, 5, 1);   // flags = 0b00100000
+escribirBit(flags, 5, 0);   // flags = 0b00000000
+```
+
+### Extracción de bytes de una palabra
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+palabra dato = 0xABCD;
+
+byte alto = byteAlto(dato);  // 0xAB (171)
+byte bajo = byteBajo(dato);  // 0xCD (205)
+
+Serie.imprimirEnNuevaLinea(alto);   // 171
+Serie.imprimirEnNuevaLinea(bajo);   // 205
+```
+
+### Comunicación con `leerBits` y `enviarBits`
+
+```cpp
+// Enviar un byte a un registro de desplazamiento (74HC595)
+entero pinDatos  = 11;
+entero pinReloj  = 12;
+entero pinCarga  = 8;
+
+inicio
+  configurarSalida(pinDatos);
+  configurarSalida(pinReloj);
+  configurarSalida(pinCarga);
+fin
+
+bucle
+  salidaDigital(pinCarga, BAJO);
+  enviarBits(pinDatos, pinReloj, MSBFIRST, 0b10101010);
+  salidaDigital(pinCarga, ALTO);
+  esperar(500);
+fin
+```
+
+## Clasificación de caracteres
+
+Estas funciones reciben un `caracter` y devuelven un `booleano` indicando si el carácter pertenece a la categoría consultada.
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `esAlfabetico(c)` | `isAlpha(c)` | `true` si es letra (a–z, A–Z) |
+| `esAlfanumerico(c)` | `isAlphaNumeric(c)` | `true` si es letra o dígito |
+| `esAscii(c)` | `isAscii(c)` | `true` si está en el rango ASCII (0–127) |
+| `esControl(c)` | `isControl(c)` | `true` si es carácter de control (< 32 o = 127) |
+| `esDigito(c)` | `isDigit(c)` | `true` si es dígito decimal (0–9) |
+| `esGrafico(c)` | `isGraph(c)` | `true` si es imprimible y no es espacio |
+| `esDigitoHexadecimal(c)` | `isHexadecimalDigit(c)` | `true` si es dígito hexadecimal (0–9, a–f, A–F) |
+| `esMinuscula(c)` | `isLowerCase(c)` | `true` si es letra minúscula |
+| `esImprimible(c)` | `isPrintable(c)` | `true` si es carácter imprimible (incluye espacio) |
+| `esSignoDePuntuacion(c)` | `isPunct(c)` | `true` si es signo de puntuación |
+| `esEspacio(c)` | `isSpace(c)` | `true` si es espacio, tabulación, nueva línea, etc. |
+| `esMayuscula(c)` | `isUpperCase(c)` | `true` si es letra mayúscula |
+| `esEspacioEnBlanco(c)` | `isWhitespace(c)` | `true` si es espacio en blanco |
+
+### Ejemplo: validar y clasificar entrada serial
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+inicio
+  Serie.iniciar(9600);
+fin
+
+bucle
+  si Serie.disponible() > 0 entonces
+    caracter c = Serie.leer();
+
+    si esDigito(c) entonces
+      Serie.imprimir(c);
+      Serie.imprimirEnNuevaLinea(" es un dígito");
+    si_no_si esAlfabetico(c) entonces
+      si esMayuscula(c) entonces
+        Serie.imprimir(c);
+        Serie.imprimirEnNuevaLinea(" es mayúscula");
+      si_no
+        Serie.imprimir(c);
+        Serie.imprimirEnNuevaLinea(" es minúscula");
+      fin
+    si_no_si esEspacio(c) entonces
+      Serie.imprimirEnNuevaLinea("[espacio]");
+    si_no_si esSignoDePuntuacion(c) entonces
+      Serie.imprimir(c);
+      Serie.imprimirEnNuevaLinea(" es puntuación");
+    fin
+  fin
+fin
+```
+
+### Ejemplo: filtrar solo dígitos hexadecimales
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+bucle
+  Cadena entrada = "3F a9 ZX 1B";
+
+  repetir(entero i = 0, i < entrada.length(), i++)
+    caracter c = entrada[i];
+    si esDigitoHexadecimal(c) entonces
+      Serie.imprimir(c);   // imprime: 3, F, a, 9, 1, B
+    fin
+  fin
+fin
+```
+
+## Interrupciones
+
+Las interrupciones permiten reaccionar a eventos externos sin detener el bucle principal.
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `habilitarEventos` | `interrupts()` | Habilita las interrupciones globales |
+| `deshabilitarEventos` | `noInterrupts()` | Deshabilita las interrupciones globales |
+| `habilitarEventoExterno(num, ISR, modo)` | `attachInterrupt(...)` | Vincula una función ISR a un pin de interrupción |
+| `deshabilitarEventoExterno(num)` | `detachInterrupt(num)` | Desvincula la ISR de un pin de interrupción |
+| `pinDigitalAEvento(pin)` | `digitalPinToInterrupt(pin)` | Convierte un número de pin al número de interrupción |
+
+<Warning>
+Las rutinas de interrupción (ISR) deben ser lo más cortas posible. No uses `esperar`, `Serial.print` ni otras funciones que dependan de interrupciones dentro de una ISR.
+</Warning>
+
+### Deshabilitar interrupciones durante sección crítica
+
+```cpp
+volatil largo contador = 0;
+
+funcion ISR_contador() {
+  contador++;
+}
+
+funcion leerContadorSeguro parametros) {
+  largo valor;
+  deshabilitarEventos;
+  valor = contador;
+  habilitarEventos;
+  devolver valor;
+}
+```
+
+### Registrar una interrupción externa
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+volatil booleano presionado = FALSO;
+
+funcion alPresionar() {
+  presionado = VERDADERO;
+}
+
+inicio
+  Serie.iniciar(9600);
+  configurarEntrada(2, VERDADERO);   // pin 2 con pull-up
+  habilitarEventoExterno(
+    pinDigitalAEvento(2),
+    alPresionar,
+    CAYENDO                          // flanco de bajada
+  );
+fin
+
+bucle
+  si presionado entonces
+    Serie.imprimirEnNuevaLinea("Botón detectado por interrupción");
+    presionado = FALSO;
+  fin
+fin
+```
+
+### Desregistrar una interrupción
+
+```cpp
+// Desactivar la interrupción del pin 2
+deshabilitarEventoExterno(pinDigitalAEvento(2));
+```
+
+<Tip>
+Usa `pinDigitalAEvento` en lugar de indicar el número de interrupción directamente. Esto hace el código portable entre placas Arduino (el número de interrupción varía entre Uno, Mega, Leonardo, etc.).
+</Tip>

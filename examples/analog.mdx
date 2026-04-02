@@ -1,0 +1,158 @@
+---
+title: "Ejemplos analógicos"
+description: "Ejemplos de salidas analógicas en Cod-ES: control de brillo de LED con PWM mediante salidaAnalogica."
+---
+
+Los ejemplos analógicos muestran cómo usar señales PWM (modulación por ancho de pulso) para controlar la intensidad de dispositivos como LEDs. A diferencia de la salida digital (solo encendido/apagado), `salidaAnalogica()` permite valores intermedios entre 0 y 255.
+
+## Barrido LED
+
+Aumenta y disminuye progresivamente la intensidad de un LED conectado a un pin PWM, creando un efecto de respiración (fade) continuo.
+
+<Note>
+  Conecta un LED al pin PWM **9** con una resistencia de **220 ohms** en serie. El ánodo del LED (pata más larga) va al pin 9 a través de la resistencia, y el cátodo (pata más corta) a GND.
+</Note>
+
+<Tip>
+  Los pines PWM en Arduino Uno son: 3, 5, 6, 9, 10 y 11. Están marcados con el símbolo `~` en la placa. El pin 9 usado en este ejemplo es uno de ellos.
+</Tip>
+
+```cpp BarridoLED.ino
+// Incluye la librería Cod-ES
+#include <Cod-ES.h>
+
+entero valor = 0; // Variable para almacenar el valor de la intensidad del LED.
+
+inicio
+  // Pon tu código de configuración aquí, para que se ejecute una vez
+  
+fin
+
+bucle
+  repetir(valor, valor <= 255, valor += 5) // Repetir de 0 a 255.
+    salidaAnalogica(9, valor); // Ajustar intensidad del LED del pin 9.
+    esperar(30, MILISEGUNDOS); // Pausa de 30 milisegundos en la ejecución del programa.
+  cerrar
+  repetir(valor, valor >= 0, valor -= 5) // Repetir de 255 a 0.
+    salidaAnalogica(9, valor); // Ajustar intensidad del LED del pin 9.
+    esperar(30, MILISEGUNDOS); // Pausa de 30 milisegundos en la ejecución del programa.
+  cerrar
+fin
+```
+
+### Diagrama de conexión
+
+<Steps>
+  <Step title="Pin 9 → resistencia 220 Ω → ánodo del LED">
+    El pin 9 se conecta a la pata positiva del LED a través de una resistencia de 220 ohms. La resistencia protege el LED limitando la corriente.
+  </Step>
+  <Step title="Cátodo del LED → GND">
+    La pata negativa (más corta) del LED se conecta a cualquier pin GND de la placa.
+  </Step>
+</Steps>
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="entero valor = 0">
+    Declara una variable entera llamada `valor` con valor inicial 0. Esta variable controla la intensidad luminosa del LED (rango: 0 a 255).
+  </Step>
+  <Step title="inicio / fin (vacíos)">
+    El bloque `inicio` no contiene código porque `salidaAnalogica()` no requiere configuración previa del pin con `configurarSalida()`. Arduino configura automáticamente los pines PWM al usar `analogWrite()`.
+  </Step>
+  <Step title="repetir(valor, valor <= 255, valor += 5)">
+    Equivale a `for (valor; valor <= 255; valor += 5)`. Incrementa `valor` de 0 a 255 en pasos de 5, aumentando el brillo gradualmente.
+  </Step>
+  <Step title="salidaAnalogica(9, valor)">
+    Equivale a `analogWrite(9, valor)`. Genera una señal PWM en el pin 9 con ciclo de trabajo proporcional a `valor`. Con `valor = 0` el LED está apagado; con `valor = 255` está al máximo brillo.
+  </Step>
+  <Step title="esperar(30, MILISEGUNDOS)">
+    Pausa de 30 ms entre cada paso. A mayor pausa, más lenta es la transición de brillo. Con pasos de 5 y 30 ms, el ciclo completo (0 → 255 → 0) dura aproximadamente 3 segundos.
+  </Step>
+  <Step title="repetir(valor, valor >= 0, valor -= 5)">
+    Segundo bucle que recorre los valores en sentido inverso (255 → 0), disminuyendo el brillo gradualmente hasta apagar el LED.
+  </Step>
+</Steps>
+
+### Equivalencia con Arduino estándar
+
+<Tabs>
+  <Tab title="Cod-ES">
+    ```cpp BarridoLED.ino
+    #include <Cod-ES.h>
+
+    entero valor = 0;
+
+    inicio
+    fin
+
+    bucle
+      repetir(valor, valor <= 255, valor += 5)
+        salidaAnalogica(9, valor);
+        esperar(30, MILISEGUNDOS);
+      cerrar
+      repetir(valor, valor >= 0, valor -= 5)
+        salidaAnalogica(9, valor);
+        esperar(30, MILISEGUNDOS);
+      cerrar
+    fin
+    ```
+  </Tab>
+  <Tab title="Arduino estándar">
+    ```cpp Fade.ino
+    int valor = 0;
+
+    void setup() {}
+
+    void loop() {
+      for (valor; valor <= 255; valor += 5) {
+        analogWrite(9, valor);
+        delay(30);
+      }
+      for (valor; valor >= 0; valor -= 5) {
+        analogWrite(9, valor);
+        delay(30);
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Lectura analógica
+
+Además de escribir valores analógicos, Cod-ES permite leer sensores analógicos usando `leerPin()` con el modo `ANALOGICO`. El valor devuelto es un entero entre 0 y 1023 (resolución de 10 bits).
+
+```cpp LecturaAnalogica.ino
+#include <Cod-ES.h>
+
+inicio
+  configurarSalida(9); // Pin PWM para el LED.
+fin
+
+bucle
+  entero lectura = leerPin(A0, ANALOGICO); // Leer el sensor en A0 (0-1023).
+  entero brillo = lectura / 4;             // Convertir a rango 0-255.
+  salidaAnalogica(9, brillo);              // Ajustar el brillo del LED.
+  esperar(10, MILISEGUNDOS);
+fin
+```
+
+<Tip>
+  La conversión `lectura / 4` mapea el rango de `leerPin()` (0–1023) al rango de `salidaAnalogica()` (0–255), ya que 1023 / 4 ≈ 255.
+</Tip>
+
+---
+
+## Referencia rápida de palabras clave usadas
+
+| Cod-ES | Arduino estándar | Descripción |
+|--------|-----------------|-------------|
+| `salidaAnalogica(pin, valor)` | `analogWrite(pin, valor)` | Escribe un valor PWM (0–255) en un pin |
+| `leerPin(pin, ANALOGICO)` | `analogRead(pin)` | Lee el valor analógico de un pin (0–1023) |
+| `entero` | `int` | Tipo de dato entero |
+| `repetir(var, cond, inc)` | `for(var; cond; inc){` | Bucle contado |
+| `esperar(t, unidad)` | `delay(ms)` | Pausa la ejecución |
+| `MILISEGUNDOS` | — | Unidad de tiempo para `esperar()` |
+| `ANALOGICO` | — | Argumento de modo para `leerPin()` |

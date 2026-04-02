@@ -1,0 +1,210 @@
+---
+title: "Ejemplos con sensores"
+description: "Ejemplos de sensores en Cod-ES: detección de golpes con sensor analógico y medición de distancia con sensor ultrasónico."
+---
+
+Los ejemplos de sensores demuestran cómo leer datos del entorno físico y reaccionar a ellos. Cod-ES incluye soporte nativo para sensores ultrasónicos HC-SR04 mediante el módulo `Ultrasonico`, y permite leer cualquier sensor analógico con `leerPin()`.
+
+## Golpe
+
+Detecta impactos físicos mediante un sensor de golpe analógico conectado al pin A0. Cuando la lectura supera un umbral de sensibilidad, el LED interno cambia de estado y se envía un mensaje por el puerto serie.
+
+<Note>
+  Conecta el **sensor de golpe** (también llamado sensor de vibración o knock sensor) al pin **A0**. El pin de señal del sensor va a A0, VCC a 5 V y GND a GND.
+</Note>
+
+<Warning>
+  Este ejemplo requiere activar el módulo Serie. Agrega `#define INCLUIR_SERIE` antes de `#include <Cod-ES.h>`.
+</Warning>
+
+```cpp Golpe.ino
+// Incluye la librería Cod-ES
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+#define pinSensor A0
+#define sensibilidad 100
+
+entero lecturaSensor = 0;
+entero estadoLED = BAJO;
+
+inicio
+  configurarSalida(LED_INTERNO); // Configurar el pin del LED interno como salida.
+  Serie.iniciar(9600); // Iniciar la comunicación serial a 9600 baudios.
+fin
+
+bucle
+  lecturaSensor = leerPin(pinSensor, ANALOGICO); // Leer el valor analógico del sensor conectado al pin A0.
+
+  si lecturaSensor >= sensibilidad entonces // Verificar si el valor del sensor supera la sensibilidad establecida.
+    estadoLED = no estadoLED; // Cambiar el estado del LED interno.
+    salidaDigital(LED_INTERNO, estadoLED); // Controlar el LED interno según el nuevo estado.
+    Serie.imprimirEnNuevaLinea("¡Golpe!"); // Enviar un mensaje por la comunicación serial.
+  cerrar
+
+  esperar(100, MILISEGUNDOS); // Esperar 100 milisegundos para evitar lecturas rápidas consecutivas.
+fin
+```
+
+### Diagrama de conexión
+
+<Steps>
+  <Step title="VCC del sensor → 5 V de la placa">
+    Alimentación del sensor de golpe.
+  </Step>
+  <Step title="GND del sensor → GND de la placa">
+    Referencia de tierra compartida.
+  </Step>
+  <Step title="Señal del sensor → pin A0">
+    La señal analógica del sensor se lee en el pin A0. En reposo el valor es cercano a 0; al recibir un golpe sube bruscamente.
+  </Step>
+</Steps>
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="#define sensibilidad 100">
+    Define el umbral mínimo de lectura para considerar que hubo un golpe. El valor analógico del pin A0 va de 0 a 1023. Reducir este valor hace el sensor más sensible; aumentarlo lo hace más selectivo.
+  </Step>
+  <Step title="entero estadoLED = BAJO">
+    Variable que almacena el estado actual del LED. Alterna entre `ALTO` y `BAJO` con cada golpe detectado, actuando como un interruptor de encendido/apagado.
+  </Step>
+  <Step title="leerPin(pinSensor, ANALOGICO)">
+    Llama a `analogRead(A0)`. El argumento `ANALOGICO` indica lectura analógica (devuelve un valor entre 0 y 1023).
+  </Step>
+  <Step title="si lecturaSensor >= sensibilidad entonces">
+    Equivale a `if (lecturaSensor >= sensibilidad) {`. Evalúa si la lectura supera el umbral definido.
+  </Step>
+  <Step title="estadoLED = no estadoLED">
+    El operador `no` es equivalente a `!` (negación lógica). Alterna el valor de `estadoLED`: si era `ALTO` pasa a `BAJO`, y viceversa.
+  </Step>
+  <Step title="esperar(100, MILISEGUNDOS)">
+    Pausa de 100 ms al final de cada iteración. Evita que un solo golpe sea detectado múltiples veces en ciclos consecutivos (antirrebote por tiempo).
+  </Step>
+</Steps>
+
+### Ajuste de sensibilidad
+
+<Tip>
+  Para calibrar el sensor, abre el Monitor Serie del IDE de Arduino a 9600 baudios y observa los valores que imprime `lecturaSensor` al golpear cerca del sensor. Ajusta el valor de `sensibilidad` según lo que observes.
+</Tip>
+
+---
+
+## Ultrasónico
+
+Mide la distancia a un objeto en centímetros usando un sensor ultrasónico HC-SR04. La distancia se envía por el puerto serie cada segundo.
+
+<Note>
+  Conecta el sensor **HC-SR04** de la siguiente manera: **TRIG** al pin **9**, **ECHO** al pin **10**, **VCC** a **5 V** y **GND** a **GND**.
+</Note>
+
+<Warning>
+  Este ejemplo requiere activar los módulos `Ultrasonico` y `Serie`. Agrega ambas líneas antes de `#include <Cod-ES.h>`:
+
+  ```cpp
+  #define INCLUIR_ULTRASONICO
+  #define INCLUIR_SERIE
+  ```
+</Warning>
+
+```cpp Ultrasonico.ino
+// Incluye la librería Cod-ES
+#define INCLUIR_ULTRASONICO
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+// Define los pines para el sensor ultrasónico.
+#define trigPin 9
+#define echoPin 10
+
+// Crea una instancia de la clase Ultrasonico.
+Ultrasonico sensor(trigPin, echoPin);
+
+inicio
+  Serie.iniciar(9600); // Iniciar la comunicación serial a 9600 baudios.
+fin
+
+bucle
+  flotante distancia = sensor.obtenerDistancia(); // Leer la distancia del objeto al sensor en centimetros.
+
+  // Enviar un mensaje por la comunicación serial.
+  Serie.imprimir("Distancia: ");
+  Serie.imprimir(distancia);
+  Serie.imprimirEnNuevaLinea(" cm");
+
+  esperar(1, SEGUNDOS); // Esperar 1 segundo para repetir.
+fin
+```
+
+### Diagrama de conexión del HC-SR04
+
+<Steps>
+  <Step title="VCC → 5 V">
+    El HC-SR04 opera a 5 V. Conéctalo al pin de 5 V de la placa Arduino.
+  </Step>
+  <Step title="GND → GND">
+    Referencia de tierra compartida entre el sensor y la placa.
+  </Step>
+  <Step title="TRIG → pin 9">
+    El pin TRIG recibe el pulso de disparo enviado por Arduino para iniciar la medición.
+  </Step>
+  <Step title="ECHO → pin 10">
+    El pin ECHO devuelve un pulso cuya duración es proporcional a la distancia medida. La clase `Ultrasonico` maneja internamente el cálculo.
+  </Step>
+</Steps>
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="#define INCLUIR_ULTRASONICO">
+    Activa el módulo `Ultrasonico` de Cod-ES. Debe declararse antes de `#include <Cod-ES.h>` para que la clase `Ultrasonico` y su método `obtenerDistancia()` estén disponibles.
+  </Step>
+  <Step title="Ultrasonico sensor(trigPin, echoPin)">
+    Crea un objeto de la clase `Ultrasonico` asociado a los pines TRIG y ECHO definidos. A partir de este objeto se realizan todas las mediciones.
+  </Step>
+  <Step title="flotante distancia = sensor.obtenerDistancia()">
+    Llama al método `obtenerDistancia()` del objeto sensor. Devuelve la distancia en centímetros como número de punto flotante (`float`). `flotante` es el equivalente en Cod-ES de `float`.
+  </Step>
+  <Step title="Serie.imprimir() y Serie.imprimirEnNuevaLinea()">
+    `Serie.imprimir()` equivale a `Serial.print()` (sin salto de línea). `Serie.imprimirEnNuevaLinea()` equivale a `Serial.println()` (con salto de línea). Se combinan para mostrar `Distancia: 23.50 cm` en una sola línea.
+  </Step>
+  <Step title="esperar(1, SEGUNDOS)">
+    Espera 1 segundo completo entre mediciones. Evita saturar el puerto serie y permite que el sensor complete el ciclo de medición correctamente.
+  </Step>
+</Steps>
+
+### Cómo funciona el sensor HC-SR04
+
+El sensor ultrasónico envía un pulso de sonido de alta frecuencia (40 kHz) a través del transductor TRIG y escucha el eco en el transductor ECHO. La distancia se calcula con la fórmula:
+
+```
+distancia (cm) = (duración del eco en µs) / 58
+```
+
+La clase `Ultrasonico` de Cod-ES maneja esta lógica internamente. El rango de medición del HC-SR04 es de **2 cm a 400 cm**, con una precisión de ±3 mm.
+
+<Tip>
+  Para evitar falsas lecturas, asegúrate de que no haya objetos a menos de 2 cm del sensor durante la inicialización. Las superficies muy inclinadas o suaves pueden absorber el ultrasonido y dar lecturas incorrectas.
+</Tip>
+
+---
+
+## Referencia rápida de palabras clave usadas
+
+| Cod-ES | Arduino estándar | Descripción |
+|--------|-----------------|-------------|
+| `leerPin(pin, ANALOGICO)` | `analogRead(pin)` | Lee el valor analógico de un pin (0–1023) |
+| `salidaDigital(pin, valor)` | `digitalWrite(pin, valor)` | Escribe un valor digital en un pin |
+| `flotante` | `float` | Tipo de dato de punto flotante |
+| `entero` | `int` | Tipo de dato entero |
+| `si … entonces` | `if ( … ) {` | Estructura condicional |
+| `cerrar` | `}` | Cierre de bloque |
+| `no` | `!` | Operador lógico NOT |
+| `>=` | `>=` | Operador mayor o igual (sin cambio en Cod-ES) |
+| `Serie.imprimir(x)` | `Serial.print(x)` | Imprime sin salto de línea |
+| `Serie.imprimirEnNuevaLinea(x)` | `Serial.println(x)` | Imprime con salto de línea |
+| `esperar(t, SEGUNDOS)` | `delay(t * 1000)` | Pausa en segundos |
+| `ANALOGICO` | — | Argumento de modo para `leerPin()` |
+| `BAJO` | `LOW` | Nivel lógico bajo |
+| `ALTO` | `HIGH` | Nivel lógico alto |

@@ -1,0 +1,141 @@
+---
+title: "Módulo Servo"
+description: "Controlá servomotores de posición angular con la clase Servo. Admite servos estándar (0°–180°) y de rotación continua."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_SERVO` **antes** de incluir `Cod-ES.h`.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_SERVO
+#include <Cod-ES.h>
+```
+
+---
+
+## Clase `Servo`
+
+Cada servo que uses en tu proyecto requiere su propia instancia de la clase `Servo`. Podés controlar hasta 12 servos simultáneamente en la mayoría de las placas AVR.
+
+```cpp
+Servo miServo;
+```
+
+---
+
+## Métodos
+
+### Adjuntar y desvincular
+
+<ParamField path="miServo.adjuntar" type="uint8_t">
+  Asocia el objeto `Servo` a un pin digital de la placa. A partir de este momento, el pin envía la señal PWM de control. Retorna el índice interno del servo.
+
+  **Firmas disponibles:**
+
+  - `adjuntar(pin)` — adjunta al pin con valores mínimo y máximo por defecto (544 µs – 2400 µs).
+  - `adjuntar(pin, min, max)` — adjunta al pin con pulsos mínimo y máximo en microsegundos personalizados.
+
+  **Parámetros:** `pin` — número de pin digital; `min` — ancho de pulso mínimo en µs (por defecto `544`); `max` — ancho de pulso máximo en µs (por defecto `2400`).
+</ParamField>
+
+<ParamField path="miServo.desvincular" type="void">
+  Desasocia el servo de su pin y detiene la señal PWM. Libera el timer para otros usos.
+</ParamField>
+
+<ParamField path="miServo.adjunto" type="bool">
+  Retorna `verdadero` si el servo está actualmente adjunto a un pin, o `falso` en caso contrario.
+</ParamField>
+
+---
+
+### Controlar posición
+
+<ParamField path="miServo.escribir" type="void">
+  Mueve el servo a la posición indicada.
+
+  - Para servos estándar: el valor es el ángulo en grados (`0` a `180`).
+  - Para servos de rotación continua: valores menores a `90` giran en un sentido, mayores a `90` en el otro, y `90` detiene el motor.
+
+  **Parámetro:** `value` — ángulo en grados (0–180) o velocidad para rotación continua.
+</ParamField>
+
+<ParamField path="miServo.escribirMicrosegundos" type="void">
+  Mueve el servo enviando directamente el ancho de pulso en microsegundos. Permite mayor precisión que `escribir()`.
+
+  **Parámetro:** `value` — ancho de pulso en microsegundos (típicamente entre `544` y `2400`).
+</ParamField>
+
+---
+
+### Leer posición actual
+
+<ParamField path="miServo.leer" type="int">
+  Retorna el ángulo actual del servo en grados (0–180), tal como fue indicado con `escribir()`.
+</ParamField>
+
+<ParamField path="miServo.leerMicrosegundos" type="int">
+  Retorna el ancho de pulso actual en microsegundos, tal como fue establecido con `escribir()` o `escribirMicrosegundos()`.
+</ParamField>
+
+---
+
+## Ejemplo completo — movimiento de barrido
+
+```cpp
+#define INCLUIR_SERVO
+#include <Cod-ES.h>
+
+Servo miServo; // Crear una instancia del servo
+
+inicio
+  miServo.adjuntar(9); // Adjuntar el servo al pin 9
+fin
+
+bucle
+  // Barrer de 0° a 180°
+  repetir(entero pos = 0, pos <= 180, pos++)
+    miServo.escribir(pos);
+    esperar(15, MILISEGUNDOS);
+  fin
+
+  // Barrer de 180° a 0°
+  repetir(entero pos = 180, pos >= 0, pos--)
+    miServo.escribir(pos);
+    esperar(15, MILISEGUNDOS);
+  fin
+fin
+```
+
+---
+
+## Ejemplo con dos servos
+
+```cpp
+#define INCLUIR_SERVO
+#include <Cod-ES.h>
+
+Servo servoBase;
+Servo servoBrazo;
+
+inicio
+  servoBase.adjuntar(9);   // Servo de la base en pin 9
+  servoBrazo.adjuntar(10); // Servo del brazo en pin 10
+
+  servoBase.escribir(90);  // Centrar la base
+  servoBrazo.escribir(45); // Posicionar el brazo
+fin
+
+bucle
+fin
+```
+
+<Warning>
+  No adjuntés el servo hasta no haber conectado la fuente de alimentación. Los servos consumen más corriente de la que puede proveer el pin USB del Arduino; usá una fuente externa si controlás más de un servo o si el servo es de gran torque.
+</Warning>
+
+<Tip>
+  Usá `adjuntar(pin, min, max)` cuando necesités mayor precisión. Medí los valores reales de tu servo con un osciloscopio o ajustalos experimentalmente.
+</Tip>

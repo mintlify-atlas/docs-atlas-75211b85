@@ -1,0 +1,244 @@
+---
+title: "Ejemplos digitales"
+description: "Ejemplos de entradas y salidas digitales en Cod-ES: lectura con pull-up y generación de melodías con buzzer."
+---
+
+Los ejemplos digitales muestran cómo leer señales de entrada (botones, interruptores) y generar señales de salida (tonos de audio). Ambos usan pines en modo completamente digital.
+
+## Entrada polarizada
+
+Lee el estado de un botón conectado con resistencia pull-up interna. Cuando el botón se presiona, el LED interno se enciende y el estado se envía por el puerto serie.
+
+<Note>
+  Conecta un interruptor sin retención (pulsador momentáneo) entre el pin **D2** y **GND**. No se necesita resistencia externa: el ejemplo activa la resistencia pull-up interna del microcontrolador.
+</Note>
+
+<Warning>
+  Este ejemplo requiere activar el módulo Serie. Agrega `#define INCLUIR_SERIE` antes de `#include <Cod-ES.h>`.
+</Warning>
+
+```cpp EntradaPolarizada.ino
+// Incluye la librería Cod-ES
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+inicio
+  Serie.iniciar(9600); // Iniciar la comunicación serial a 9600 baudios.
+  configurarEntrada(2, VERDADERO); // Configurar el pin 2 como entrada digital con resistencia pull-up.
+  configurarSalida(LED_INTERNO); // Configurar el LED interno como salida digital.
+fin
+
+bucle
+  entero estadoBoton = leerPin(2, DIGITAL); // Leer el estado del botón conectado al pin 2.
+  Serie.imprimirEnNuevaLinea(estadoBoton); // Imprimir el estado del botón en una nueva línea.
+
+  si estadoBoton es_igual ALTO entonces
+    apagar(LED_INTERNO); // Apagar el LED interno.
+  si_no
+    encender(LED_INTERNO); // Encender el LED interno.
+  cerrar
+fin
+```
+
+### Diagrama de conexión
+
+<Steps>
+  <Step title="Pin D2 → pata 1 del pulsador">
+    Un extremo del pulsador va al pin digital 2 de la placa Arduino.
+  </Step>
+  <Step title="GND → pata 2 del pulsador">
+    El otro extremo del pulsador se conecta directamente a GND. No se necesita resistencia externa.
+  </Step>
+</Steps>
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="configurarEntrada(2, VERDADERO)">
+    Llama a `pinMode(2, INPUT_PULLUP)`. El segundo argumento `VERDADERO` activa la resistencia pull-up interna. Esto hace que el pin lea `ALTO` en reposo y `BAJO` cuando el botón se presiona (ya que el botón conecta el pin a GND).
+  </Step>
+  <Step title="leerPin(2, DIGITAL)">
+    Llama a `digitalRead(2)`. El segundo argumento `DIGITAL` indica que se trata de una lectura digital (0 o 1). Compara con `ANALOGICO` para lecturas de 0 a 1023.
+  </Step>
+  <Step title="si estadoBoton es_igual ALTO entonces">
+    Equivale a `if (estadoBoton == HIGH) {`. `es_igual` es el operador `==` en Cod-ES. `entonces` reemplaza la apertura `){` del bloque condicional.
+  </Step>
+  <Step title="apagar(LED_INTERNO) / encender(LED_INTERNO)">
+    Atajos de Cod-ES que equivalen a `digitalWrite(LED_BUILTIN, LOW)` y `digitalWrite(LED_BUILTIN, HIGH)` respectivamente. Simplifican el control de pines de salida.
+  </Step>
+  <Step title="si_no">
+    Equivale a `} else {`. Ejecuta el bloque alternativo cuando la condición del `si` no se cumple.
+  </Step>
+  <Step title="Serie.imprimirEnNuevaLinea(estadoBoton)">
+    Equivale a `Serial.println(estadoBoton)`. Envía el valor leído por el puerto serie seguido de un salto de línea. Visible en el Monitor Serie del IDE de Arduino a 9600 baudios.
+  </Step>
+</Steps>
+
+### Lógica invertida con pull-up
+
+<Tip>
+  Al usar `configurarEntrada(pin, VERDADERO)` la lógica del botón es invertida: el pin lee `ALTO` (1) cuando el botón **no está presionado**, y `BAJO` (0) cuando **sí está presionado** (porque conecta el pin a GND). Por eso el ejemplo apaga el LED cuando lee `ALTO` y lo enciende cuando lee `BAJO`.
+</Tip>
+
+### Equivalencia con Arduino estándar
+
+<Tabs>
+  <Tab title="Cod-ES">
+    ```cpp EntradaPolarizada.ino
+    #define INCLUIR_SERIE
+    #include <Cod-ES.h>
+
+    inicio
+      Serie.iniciar(9600);
+      configurarEntrada(2, VERDADERO);
+      configurarSalida(LED_INTERNO);
+    fin
+
+    bucle
+      entero estadoBoton = leerPin(2, DIGITAL);
+      Serie.imprimirEnNuevaLinea(estadoBoton);
+
+      si estadoBoton es_igual ALTO entonces
+        apagar(LED_INTERNO);
+      si_no
+        encender(LED_INTERNO);
+      cerrar
+    fin
+    ```
+  </Tab>
+  <Tab title="Arduino estándar">
+    ```cpp InputPullup.ino
+    void setup() {
+      Serial.begin(9600);
+      pinMode(2, INPUT_PULLUP);
+      pinMode(LED_BUILTIN, OUTPUT);
+    }
+
+    void loop() {
+      int estadoBoton = digitalRead(2);
+      Serial.println(estadoBoton);
+
+      if (estadoBoton == HIGH) {
+        digitalWrite(LED_BUILTIN, LOW);
+      } else {
+        digitalWrite(LED_BUILTIN, HIGH);
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Melodía
+
+Reproduce una melodía corta al iniciar la placa usando un buzzer pasivo. Cada nota se genera con la función `tono()` especificando el pin, la frecuencia y la duración.
+
+<Note>
+  Conecta un **buzzer pasivo** al pin **8**. Un extremo al pin 8 y el otro a GND. Los buzzers activos no son compatibles ya que no responden a señales de frecuencia variable.
+</Note>
+
+<CodeGroup>
+
+```cpp Melodia.ino
+// Incluye la librería Cod-ES
+#include <Cod-ES.h>
+
+#include "notas.h" // Incluir el archivo de encabezado que contiene las definiciones de las notas musicales.
+
+entero melodia[] = {
+  NOTA_DO4, NOTA_SOL3, NOTA_SOL3, NOTA_LA3, NOTA_SOL3, 0, NOTA_SI3, NOTA_DO4
+};
+
+entero duraciones[] = {
+  4, 8, 8, 4, 4, 4, 4, 4
+};
+
+inicio
+  repetir (entero nota = 0, nota < 8, nota++)
+    entero duracion = 1000 / duraciones[nota]; // Calcular la duración de la nota en milisegundos.
+    
+    tono(8, melodia[nota], duracion); // Generar un tono con la nota actual y su duración.
+    esperar(duracion * 1.30, MILISEGUNDOS); // Esperar un tiempo ligeramente mayor que la duración de la nota.
+    apagarTono(8); // Apagar el tono después de la duración especificada.
+  cerrar
+fin
+
+bucle
+  // Coloca tu código principal aquí para que se ejecute repetidamente.
+  
+fin
+```
+
+```cpp notas.h
+#define NOTA_SI0  31
+#define NOTA_DO1  33
+// ... (frecuencias en Hz para cada nota)
+#define NOTA_SOL3  196
+#define NOTA_LA3  220
+#define NOTA_SI3  247
+#define NOTA_DO4  262
+// ... ver archivo completo para todas las octavas
+```
+
+</CodeGroup>
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="entero melodia[]">
+    Array de enteros que almacena las frecuencias en Hz de cada nota de la melodía. Los valores provienen de las constantes definidas en `notas.h`. El valor `0` representa una pausa (silencio).
+  </Step>
+  <Step title="entero duraciones[]">
+    Array de enteros que define la duración de cada nota usando denominadores de nota musical: `4` es negra (un cuarto), `8` es corchea (un octavo).
+  </Step>
+  <Step title="repetir (entero nota = 0, nota < 8, nota++)">
+    Equivale a `for (int nota = 0; nota < 8; nota++)`. Itera sobre cada una de las 8 notas de la melodía.
+  </Step>
+  <Step title="entero duracion = 1000 / duraciones[nota]">
+    Convierte el denominador de nota en milisegundos. Una negra (4) resulta en 250 ms; una corchea (8) en 125 ms.
+  </Step>
+  <Step title="tono(8, melodia[nota], duracion)">
+    Equivale a `tone(8, melodia[nota], duracion)`. Genera una onda cuadrada en el pin 8 a la frecuencia indicada durante la duración especificada en milisegundos.
+  </Step>
+  <Step title="esperar(duracion * 1.30, MILISEGUNDOS)">
+    Agrega un 30 % extra de tiempo al de la nota para que haya una pequeña separación audible entre notas consecutivas.
+  </Step>
+  <Step title="apagarTono(8)">
+    Equivale a `noTone(8)`. Detiene la generación del tono en el pin 8.
+  </Step>
+</Steps>
+
+### Notas disponibles en notas.h
+
+El archivo `notas.h` define constantes para todas las notas musicales desde la octava 0 hasta la 8, con sostenidos incluidos. El formato del nombre es `NOTA_[NOMBRE][OCTAVA]`:
+
+| Constante | Frecuencia (Hz) | Nota musical |
+|-----------|----------------|--------------|
+| `NOTA_DO4` | 262 Hz | Do central (C4) |
+| `NOTA_RE4` | 294 Hz | Re (D4) |
+| `NOTA_MI4` | 330 Hz | Mi (E4) |
+| `NOTA_FA4` | 349 Hz | Fa (F4) |
+| `NOTA_SOL4` | 392 Hz | Sol (G4) |
+| `NOTA_LA4` | 440 Hz | La (A4) |
+| `NOTA_SI4` | 494 Hz | Si (B4) |
+
+---
+
+## Referencia rápida de palabras clave usadas
+
+| Cod-ES | Arduino estándar | Descripción |
+|--------|-----------------|-------------|
+| `configurarEntrada(pin, pullup)` | `pinMode(pin, INPUT_PULLUP)` | Configura un pin como entrada, con pull-up opcional |
+| `leerPin(pin, DIGITAL)` | `digitalRead(pin)` | Lee el valor digital de un pin |
+| `encender(pin)` | `digitalWrite(pin, HIGH)` | Pone un pin en nivel alto |
+| `apagar(pin)` | `digitalWrite(pin, LOW)` | Pone un pin en nivel bajo |
+| `tono(pin, freq, dur)` | `tone(pin, freq, dur)` | Genera un tono en un pin |
+| `apagarTono(pin)` | `noTone(pin)` | Detiene el tono en un pin |
+| `si … entonces` | `if ( … ) {` | Estructura condicional |
+| `si_no` | `} else {` | Bloque alternativo |
+| `es_igual` | `==` | Operador de igualdad |
+| `Serie.iniciar(baud)` | `Serial.begin(baud)` | Inicia la comunicación serie |
+| `Serie.imprimirEnNuevaLinea(x)` | `Serial.println(x)` | Imprime con salto de línea |
+| `DIGITAL` | — | Argumento de modo para `leerPin()` |
+| `VERDADERO` | `true` | Constante booleana verdadero |

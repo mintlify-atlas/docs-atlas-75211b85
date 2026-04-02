@@ -1,0 +1,142 @@
+---
+title: "Funciones matemáticas"
+description: "Operaciones matemáticas, trigonométricas, de redondeo y de generación de números aleatorios disponibles en Cod-ES."
+---
+
+Cod-ES provee nombres en español para todas las funciones matemáticas estándar de Arduino/C++.
+
+## Referencia completa
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `absoluto(x)` | `abs(x)` | Valor absoluto |
+| `raizCuadrada(x)` | `sqrt(x)` | Raíz cuadrada |
+| `potencia(base, exp)` | `pow(base, exp)` | Potenciación |
+| `seno(x)` | `sin(x)` | Seno (radianes) |
+| `coseno(x)` | `cos(x)` | Coseno (radianes) |
+| `tangente(x)` | `tan(x)` | Tangente (radianes) |
+| `arcoSeno(x)` | `asin(x)` | Arco seno |
+| `arcoCoseno(x)` | `acos(x)` | Arco coseno |
+| `arcoTangente(x)` | `atan(x)` | Arco tangente |
+| `arcoTangente2(y, x)` | `atan2(y, x)` | Arco tangente de dos argumentos |
+| `redondear(x)` | `round(x)` | Redondeo al entero más cercano |
+| `techo(x)` | `ceil(x)` | Redondeo hacia arriba |
+| `piso(x)` | `floor(x)` | Redondeo hacia abajo |
+| `aleatoriaConSemilla(s)` | `randomSeed(s)` | Inicializa la secuencia aleatoria |
+| `aleatorio(min, max)` | `random(min, max)` | Genera un número aleatorio |
+| `esPar(n)` | `((n % 2) == 0)` | Devuelve `true` si `n` es par |
+| `esImpar(n)` | `((n % 2) != 0)` | Devuelve `true` si `n` es impar |
+
+## Valor absoluto y raíz cuadrada
+
+```cpp
+flotante a = -7.5;
+flotante b = 16.0;
+
+flotante positivo = absoluto(a);       // 7.5
+flotante raiz     = raizCuadrada(b);   // 4.0
+
+Serial.println(positivo);
+Serial.println(raiz);
+```
+
+## Potenciación
+
+```cpp
+flotante resultado = potencia(2.0, 8.0);  // 256.0
+Serial.println(resultado);
+
+// Calcular la hipotenusa de un triángulo rectángulo
+flotante catA = 3.0;
+flotante catB = 4.0;
+flotante hip  = raizCuadrada(potencia(catA, 2) + potencia(catB, 2));  // 5.0
+```
+
+## Funciones trigonométricas
+
+<Note>
+Todas las funciones trigonométricas trabajan en **radianes**. Convierte grados a radianes multiplicando por `PI / 180.0`.
+</Note>
+
+```cpp
+flotante angulo = 45.0;
+flotante rad    = angulo * (PI / 180.0);  // convertir a radianes
+
+flotante s  = seno(rad);            // 0.7071...
+flotante c  = coseno(rad);          // 0.7071...
+flotante t  = tangente(rad);        // 1.0
+
+flotante as = arcoSeno(0.5);        // ~0.5236 rad (30°)
+flotante ac = arcoCoseno(0.5);      // ~1.0472 rad (60°)
+flotante at = arcoTangente(1.0);    // ~0.7854 rad (45°)
+
+// arcoTangente2 calcula el ángulo a partir de componentes x e y
+flotante angResultante = arcoTangente2(3.0, 4.0);
+```
+
+## Redondeo
+
+```cpp
+flotante valor = 3.7;
+
+flotante redondeado = redondear(valor);  // 4.0
+flotante arriba     = techo(valor);      // 4.0
+flotante abajo      = piso(valor);       // 3.0
+
+flotante negativo   = -3.7;
+Serial.println(techo(negativo));         // -3.0
+Serial.println(piso(negativo));          // -4.0
+```
+
+## Números aleatorios
+
+<Steps>
+  <Step title="Inicializar la semilla">
+    Llama a `aleatoriaConSemilla` una vez en `inicio` para obtener secuencias distintas en cada ejecución. Usa una lectura de pin analógico desconectado para mayor aleatoriedad.
+
+    ```cpp
+    inicio
+      aleatoriaConSemilla(leerPin(A0, ANALOGICO));
+    fin
+    ```
+  </Step>
+  <Step title="Generar números aleatorios">
+    Llama a `aleatorio(min, max)` para obtener un número en el rango `[min, max)` (el límite superior es exclusivo).
+
+    ```cpp
+    bucle
+      entero dado = aleatorio(1, 7);    // 1 a 6
+      Serial.println(dado);
+      esperar(1000);
+    fin
+    ```
+  </Step>
+</Steps>
+
+```cpp
+// Número entre 0 y 99
+largo n1 = aleatorio(0, 100);
+
+// Número entre -50 y 49
+largo n2 = aleatorio(-50, 50);
+```
+
+## Paridad
+
+`esPar` y `esImpar` son macros de conveniencia que evalúan la paridad de un entero.
+
+```cpp
+repetir(entero i = 0, i < 10, i++)
+  si esPar(i) entonces
+    Serial.print(i);
+    Serial.println(" es par");
+  si_no
+    Serial.print(i);
+    Serial.println(" es impar");
+  fin
+fin
+```
+
+<Tip>
+`esPar(n)` equivale a `((n % 2) == 0)` y `esImpar(n)` equivale a `((n % 2) != 0)`. El compilador los expande en línea sin costo adicional.
+</Tip>

@@ -1,0 +1,249 @@
+---
+title: "Módulo TM1637 (display de 7 segmentos)"
+description: "Mostrá números y caracteres en displays de 4 dígitos de 7 segmentos controlados por el chip TM1637. Usá solo 2 pines para comunicación."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_TM1637` **antes** de incluir `Cod-ES.h`.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_TM1637
+#include <Cod-ES.h>
+```
+
+---
+
+## Conexión de hardware
+
+| Pin del módulo | Pin en Arduino |
+| -------------- | -------------- |
+| CLK            | Pin digital (ej: 2) |
+| DIO            | Pin digital (ej: 3) |
+| VCC            | 5V             |
+| GND            | GND            |
+
+---
+
+## Clase `TM1637`
+
+Cada display TM1637 que uses en tu proyecto requiere su propia instancia de la clase `TM1637`.
+
+### Constructor
+
+<ParamField path="TM1637" type="constructor">
+  Crea una instancia del display de 7 segmentos.
+
+  **Parámetros:**
+
+  - `pinClk` — pin digital para la señal de reloj (CLK).
+  - `pinDIO` — pin digital para el dato (DIO).
+  - `bitDelay` — retardo en microsegundos entre bits para la comunicación (por defecto: `100`). Reducir este valor aumenta la velocidad de actualización.
+</ParamField>
+
+```cpp
+TM1637 display(2, 3);        // CLK: pin 2, DIO: pin 3
+TM1637 display(2, 3, 50);   // Con retardo personalizado de 50 µs
+```
+
+---
+
+## Constantes de segmentos
+
+Podés componer dígitos o símbolos personalizados combinando las constantes de segmento con el operador `|`:
+
+| Constante | Segmento | Posición |
+| --------- | -------- | -------- |
+| `SEG_A`   | A        | Superior |
+| `SEG_B`   | B        | Superior derecho |
+| `SEG_C`   | C        | Inferior derecho |
+| `SEG_D`   | D        | Inferior |
+| `SEG_E`   | E        | Inferior izquierdo |
+| `SEG_F`   | F        | Superior izquierdo |
+| `SEG_G`   | G        | Medio |
+
+---
+
+## Métodos públicos
+
+### Brillo
+
+<ParamField path="display.ajustarBrillo" type="void">
+  Establece el brillo del display. El cambio de brillo apaga y vuelve a encender el display internamente.
+
+  **Parámetros:**
+
+  - `brightness` — nivel de brillo de `0` (más tenue) a `7` (máximo).
+  - `on` — `true` para encender el display (por defecto), `false` para apagarlo manteniendo la configuración de brillo.
+</ParamField>
+
+---
+
+### Mostrar contenido
+
+<ParamField path="display.mostrarDecimales" type="void">
+  Muestra un número entero en el display sin puntos decimales.
+
+  **Parámetros:**
+
+  - `num` — número entero a mostrar.
+  - `leading_zero` — `true` para mostrar ceros a la izquierda (ej: `0042`), `false` para omitirlos (por defecto).
+  - `length` — cantidad de dígitos a mostrar (por defecto: `4`).
+  - `pos` — posición inicial del primer dígito, de izquierda a derecha (por defecto: `0`).
+</ParamField>
+
+<ParamField path="display.mostrarDecimalesConPuntos" type="void">
+  Muestra un número entero con control individual de los puntos entre dígitos.
+
+  **Parámetros:**
+
+  - `num` — número entero a mostrar.
+  - `dots` — máscara de bits para los puntos (cada bit activa el punto de ese dígito); por defecto `0` (sin puntos).
+  - `leading_zero` — mostrar ceros a la izquierda (por defecto `false`).
+  - `length` — cantidad de dígitos (por defecto `4`).
+  - `pos` — posición inicial (por defecto `0`).
+</ParamField>
+
+<ParamField path="display.mostrarHexadecimalesConPuntos" type="void">
+  Muestra un número en formato hexadecimal (0–9 y A–F) con control de puntos.
+
+  **Parámetros:**
+
+  - `num` — número de 16 bits sin signo (`uint16_t`) a mostrar.
+  - `dots` — máscara de bits para los puntos (por defecto `0`).
+  - `leading_zero` — mostrar ceros a la izquierda (por defecto `false`).
+  - `length` — cantidad de dígitos (por defecto `4`).
+  - `pos` — posición inicial (por defecto `0`).
+</ParamField>
+
+<ParamField path="display.ajustarSegmentos" type="void">
+  Muestra segmentos definidos manualmente como un arreglo de bytes. Permite mostrar caracteres y símbolos personalizados.
+
+  **Parámetros:**
+
+  - `segments` — arreglo de bytes donde cada byte representa los segmentos encendidos de un dígito.
+  - `length` — cantidad de dígitos del arreglo (por defecto `4`).
+  - `pos` — posición inicial (por defecto `0`).
+</ParamField>
+
+<ParamField path="display.limpiar" type="void">
+  Apaga todos los segmentos del display. Equivalente a mostrar `0000` con brillo cero.
+</ParamField>
+
+---
+
+## Métodos protegidos (internos)
+
+Estos métodos forman parte del protocolo de comunicación con el chip TM1637 y se usan internamente. No es necesario llamarlos en un programa normal.
+
+| Método | Descripción |
+| ------ | ----------- |
+| `esperarBits()` | Introduce el retardo definido por `bitDelay` entre transmisiones de bits. |
+| `iniciar()` | Envía la condición de inicio del protocolo TM1637. |
+| `parar()` | Envía la condición de parada del protocolo TM1637. |
+| `escribirByte(b)` | Transmite un byte al chip y aguarda el bit de ACK. |
+| `mostrarPuntos(dots, digits)` | Aplica la máscara de puntos al arreglo de dígitos. |
+| `mostrarNumeroBaseConPuntos(base, num, ...)` | Convierte un número a la base indicada y lo envía al display. |
+
+---
+
+## Ejemplo completo — contador ascendente
+
+```cpp
+#define INCLUIR_TM1637
+#include <Cod-ES.h>
+
+TM1637 display(2, 3); // CLK: pin 2, DIO: pin 3
+
+entero contador = 0;
+
+inicio
+  display.ajustarBrillo(5); // Brillo nivel 5 (0–7)
+fin
+
+bucle
+  display.mostrarDecimales(contador, FALSO); // Mostrar número sin ceros a la izquierda
+  contador++;
+
+  si contador > 9999 entonces
+    contador = 0;
+  fin
+
+  esperar(1, SEGUNDOS);
+fin
+```
+
+---
+
+## Ejemplo — reloj con separador de dos puntos
+
+```cpp
+#define INCLUIR_TM1637
+#include <Cod-ES.h>
+
+TM1637 display(2, 3);
+
+entero horas   = 12;
+entero minutos = 0;
+booleano puntos = VERDADERO;
+
+inicio
+  display.ajustarBrillo(4);
+fin
+
+bucle
+  // Mostrar hora como HHMM con puntos en el centro (máscara 0b0100 = bit 2)
+  entero tiempo = horas * 100 + minutos;
+  display.mostrarDecimalesConPuntos(tiempo, puntos ? 0b0100 : 0b0000, VERDADERO);
+
+  puntos = no puntos; // Alternar puntos para efecto de parpadeo
+  esperar(500, MILISEGUNDOS);
+
+  minutos++;
+  si minutos >= 60 entonces
+    minutos = 0;
+    horas++;
+    si horas >= 24 entonces
+      horas = 0;
+    fin
+  fin
+fin
+```
+
+---
+
+## Ejemplo — segmentos personalizados
+
+```cpp
+#define INCLUIR_TM1637
+#include <Cod-ES.h>
+
+TM1637 display(2, 3);
+
+inicio
+  display.ajustarBrillo(7);
+
+  // Mostrar "HOLA" usando segmentos personalizados
+  // H = SEG_B|SEG_C|SEG_E|SEG_F|SEG_G
+  // O = SEG_A|SEG_B|SEG_C|SEG_D|SEG_E|SEG_F
+  // L = SEG_D|SEG_E|SEG_F
+  // A = SEG_A|SEG_B|SEG_C|SEG_E|SEG_F|SEG_G
+  uint8_t segmentos[] = {
+    SEG_B | SEG_C | SEG_E | SEG_F | SEG_G,           // H
+    SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,   // O
+    SEG_D | SEG_E | SEG_F,                            // L
+    SEG_A | SEG_B | SEG_C | SEG_E | SEG_F | SEG_G    // A
+  };
+
+  display.ajustarSegmentos(segmentos);
+fin
+
+bucle
+fin
+```
+
+<Tip>
+  Para mostrar una hora en formato HH:MM, usá `mostrarDecimalesConPuntos()` con la máscara `0b0100`. Esto activa el punto del segundo dígito, que en los módulos típicos aparece como los dos puntos centrales del reloj.
+</Tip>

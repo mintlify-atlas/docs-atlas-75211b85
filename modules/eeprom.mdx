@@ -1,0 +1,167 @@
+---
+title: "Módulo EEPROM"
+description: "Guardá y leé datos en la memoria no volátil del microcontrolador. Los datos persisten aunque el Arduino se apague o reinicie."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_EEPROM` **antes** de incluir `Cod-ES.h`.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_EEPROM
+#include <Cod-ES.h>
+```
+
+---
+
+## Objeto `EEPROM`
+
+El módulo expone una instancia global llamada `EEPROM` (de la clase `EEPROMClass`). No es necesario crear instancias adicionales.
+
+<Warning>
+  La EEPROM de los microcontroladores AVR tiene una vida útil limitada de aproximadamente **100.000 ciclos de escritura** por dirección. Usá `actualizar()` en lugar de `escribir()` cuando sea posible para prolongar la vida útil.
+</Warning>
+
+---
+
+## Capacidad por placa
+
+| Placa         | Capacidad EEPROM |
+| ------------- | ---------------- |
+| Arduino Uno   | 1024 bytes       |
+| Arduino Mega  | 4096 bytes       |
+| Arduino Nano  | 1024 bytes       |
+| Arduino Leonardo | 1024 bytes    |
+
+---
+
+## Métodos
+
+### Lectura
+
+<ParamField path="EEPROM.leer" type="uint8_t">
+  Lee un byte (entero sin signo de 8 bits) almacenado en la dirección indicada. Retorna el valor leído (0–255).
+
+  **Parámetro:** `idx` — dirección de memoria (0 hasta `longitud() - 1`).
+</ParamField>
+
+<ParamField path="EEPROM.obtener" type="T&">
+  Lee un valor de cualquier tipo de dato trivialmente copiable (`int`, `float`, `struct`, etc.) desde la dirección indicada. El tamaño leído es el de `sizeof(T)`. También funciona con `String`.
+
+  **Parámetros:** `idx` — dirección de inicio; `t` — variable de destino (se modifica por referencia).
+
+  **Retorna:** referencia a la variable de destino con el valor leído.
+</ParamField>
+
+---
+
+### Escritura
+
+<ParamField path="EEPROM.escribir" type="void">
+  Escribe un byte en la dirección indicada. Siempre realiza la escritura, sin verificar si el valor ya es el mismo. Para mayor durabilidad, preferí `actualizar()`.
+
+  **Parámetros:** `idx` — dirección de memoria; `val` — byte a escribir (0–255).
+</ParamField>
+
+<ParamField path="EEPROM.actualizar" type="void">
+  Escribe un byte en la dirección indicada **solo si el valor almacenado es diferente**. Reduce el desgaste de la memoria. Es la función recomendada para escrituras frecuentes.
+
+  **Parámetros:** `idx` — dirección de memoria; `val` — nuevo valor (0–255).
+</ParamField>
+
+<ParamField path="EEPROM.poner" type="const T&">
+  Escribe un valor de cualquier tipo de dato trivialmente copiable en la dirección indicada. Internamente usa `actualizar()` para minimizar el desgaste. También funciona con `String`.
+
+  **Parámetros:** `idx` — dirección de inicio; `t` — valor a escribir.
+
+  **Retorna:** referencia constante al valor escrito.
+</ParamField>
+
+---
+
+### Iteración
+
+<ParamField path="EEPROM.iniciar" type="EEPtr">
+  Retorna un puntero a la primera dirección de la EEPROM (dirección `0x00`). Útil para iterar sobre toda la memoria.
+</ParamField>
+
+<ParamField path="EEPROM.terminar" type="EEPtr">
+  Retorna un puntero a la dirección posterior al último byte de la EEPROM. Equivale a `longitud()`.
+</ParamField>
+
+<ParamField path="EEPROM.longitud" type="uint16_t">
+  Retorna la cantidad total de bytes disponibles en la EEPROM del microcontrolador.
+</ParamField>
+
+---
+
+## Operador `[]`
+
+Podés acceder a la EEPROM con notación de arreglo para leer y escribir bytes directamente:
+
+```cpp
+EEPROM[0] = 42;        // Escribe 42 en la dirección 0
+byte valor = EEPROM[0]; // Lee la dirección 0
+```
+
+---
+
+## Ejemplo completo — contador persistente
+
+Este ejemplo guarda un contador en la EEPROM. El conteo sobrevive reinicios y desconexiones.
+
+```cpp
+#define INCLUIR_EEPROM
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+constante entero DIRECCION = 0; // Dirección donde se guarda el contador
+
+inicio
+  Serie.iniciar(9600);
+
+  entero contador = 0;
+  EEPROM.obtener(DIRECCION, contador); // Leer el valor guardado
+
+  Serie.imprimir("Arranque número: ");
+  Serie.imprimirEnNuevaLinea(contador);
+
+  contador++;
+  EEPROM.poner(DIRECCION, contador); // Guardar el nuevo valor
+fin
+
+bucle
+fin
+```
+
+---
+
+## Ejemplo — guardar y leer un `float`
+
+```cpp
+#define INCLUIR_EEPROM
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+inicio
+  Serie.iniciar(9600);
+
+  flotante temperatura = 23.75;
+  EEPROM.poner(0, temperatura); // Guardar el float en la dirección 0
+
+  flotante leido = 0.0;
+  EEPROM.obtener(0, leido);     // Recuperar el float
+
+  Serie.imprimir("Temperatura guardada: ");
+  Serie.imprimirEnNuevaLinea(leido);
+fin
+
+bucle
+fin
+```
+
+<Tip>
+  Al usar `poner()` y `obtener()` con tipos de más de 1 byte (como `int`, `float` o estructuras), asegurate de dejar espacio suficiente entre direcciones. Un `float` ocupa 4 bytes, así que el próximo dato debería guardarse en la dirección `0 + sizeof(float) = 4`.
+</Tip>

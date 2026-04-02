@@ -1,0 +1,125 @@
+---
+title: "Instalación"
+description: "Instala la librería Cod-ES en el IDE de Arduino descargando el archivo ZIP desde GitHub e importándolo directamente."
+---
+
+## Requisitos previos
+
+- [Arduino IDE](https://www.arduino.cc/en/software) instalado (versión 1.8 o superior recomendada).
+- Una placa Arduino compatible (Uno, Nano, Mega, u otras).
+
+## Instalación mediante archivo ZIP
+
+Cod-ES se instala directamente desde un archivo ZIP descargado del repositorio de GitHub. No está disponible en el gestor de librerías oficial del IDE de Arduino.
+
+<Steps>
+  <Step title="Descargar el repositorio como ZIP">
+    Ve al repositorio oficial en GitHub:
+    [https://github.com/FrancoMartino/Cod-ES](https://github.com/FrancoMartino/Cod-ES)
+
+    Haz clic en el botón **Code** → **Download ZIP** para descargar el archivo `Cod-ES-main.zip`.
+  </Step>
+
+  <Step title="Abrir el gestor de librerías ZIP en el IDE de Arduino">
+    En el IDE de Arduino, ve al menú:
+
+    **Sketch → Include Library → Add .ZIP Library...**
+  </Step>
+
+  <Step title="Seleccionar el archivo ZIP">
+    En el cuadro de diálogo que se abre, navega hasta la ubicación donde descargaste el archivo ZIP y selecciónalo. Haz clic en **Abrir**.
+
+    El IDE de Arduino instalará la librería automáticamente y mostrará el mensaje: _"Library added to your libraries."_
+  </Step>
+
+  <Step title="Incluir la librería en tu sketch">
+    En cualquier nuevo sketch de Arduino, agrega la siguiente línea al inicio para comenzar a programar en español:
+
+    ```cpp
+    #include <Cod-ES.h>
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  Después de instalar la librería, puedes acceder a los ejemplos incluidos desde el IDE: **File → Examples → Cod-ES**.
+</Tip>
+
+---
+
+## Activar módulos opcionales
+
+Cod-ES divide su funcionalidad en módulos. Por defecto, al incluir `<Cod-ES.h>` solo se carga el núcleo de la librería (pines, tiempo, control de flujo, constantes y matemáticas). Los módulos adicionales deben activarse explícitamente.
+
+Para activar un módulo, define la constante correspondiente **antes** de incluir la librería:
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+```
+
+Puedes activar varios módulos a la vez:
+
+```cpp
+#define INCLUIR_SERIE
+#define INCLUIR_SERVO
+#define INCLUIR_LCD_I2C
+#include <Cod-ES.h>
+```
+
+<Warning>
+  Las directivas `#define` para activar módulos deben aparecer **antes** de `#include <Cod-ES.h>`. Si se colocan después, los módulos no se cargarán.
+</Warning>
+
+### Módulos disponibles
+
+| Constante             | Módulo activado            | Descripción                                                      |
+| --------------------- | -------------------------- | ---------------------------------------------------------------- |
+| `INCLUIR_SERIE`       | Comunicación serie         | Habilita el objeto `Serie` para enviar y recibir datos por USB.  |
+| `INCLUIR_SERVO`       | Servomotores               | Control de servomotores con sintaxis en español.                 |
+| `INCLUIR_LED_RGB`     | LEDs RGB                   | Control de componentes LED de tres canales (rojo, verde, azul).  |
+| `INCLUIR_MOTOR_PAP`   | Motores paso a paso        | Control de motores paso a paso (stepper).                        |
+| `INCLUIR_EEPROM`      | Memoria EEPROM             | Lectura y escritura de datos persistentes en la memoria interna. |
+| `INCLUIR_LCD_I2C`     | Pantalla LCD por I2C       | Control de pantallas LCD compatibles con el protocolo I2C.       |
+| `INCLUIR_ULTRASONICO` | Sensor ultrasónico         | Medición de distancias con sensores ultrasónicos (ej. HC-SR04).  |
+| `INCLUIR_TM1637`      | Display TM1637             | Control de displays de 7 segmentos con el chip TM1637.           |
+
+---
+
+## Verificar la instalación
+
+Una vez instalada la librería, puedes verificar que funciona correctamente compilando el siguiente sketch mínimo:
+
+```cpp
+#include <Cod-ES.h>
+
+inicio
+  configurarSalida(LED_INTERNO);
+fin
+
+bucle
+  salidaDigital(LED_INTERNO, ALTO);
+  esperar(500, MILISEGUNDOS);
+  salidaDigital(LED_INTERNO, BAJO);
+  esperar(500, MILISEGUNDOS);
+fin
+```
+
+Si el sketch compila sin errores, la instalación fue exitosa.
+
+<Note>
+  La versión actual de Cod-ES es **1.0.0**, creada por Franco Martino. La librería es compatible con todas las arquitecturas de Arduino (`architectures=*`).
+</Note>
+
+---
+
+## Próximos pasos
+
+<CardGroup cols={2}>
+  <Card title="Inicio rápido" icon="bolt" href="/quickstart">
+    Escribe y comprende tu primer programa completo en Cod-ES.
+  </Card>
+  <Card title="Referencia del lenguaje" icon="book" href="/reference/control-flow">
+    Consulta la lista completa de funciones y constantes disponibles.
+  </Card>
+</CardGroup>

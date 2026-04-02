@@ -1,0 +1,87 @@
+{
+  "projectType": "sdk-library",
+  "projectName": "Cod-ES",
+  "projectDescription": "An Arduino library that translates the Arduino programming syntax into Spanish, enabling Spanish-speaking developers and students to code in their native language.",
+  "theme": "palm",
+  "primaryColor": "#E63946",
+  "lightColor": "#FF6B78",
+  "darkColor": "#C1121F",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentación",
+        "groups": [
+          {
+            "group": "Introducción",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Referencia del Lenguaje",
+            "pages": [
+              "reference/control-flow",
+              "reference/data-types",
+              "reference/constants",
+              "reference/math",
+              "reference/pins",
+              "reference/time",
+              "reference/bits-characters"
+            ]
+          },
+          {
+            "group": "Módulos",
+            "pages": [
+              "modules/serial",
+              "modules/servo",
+              "modules/led-rgb",
+              "modules/stepper",
+              "modules/eeprom",
+              "modules/lcd-i2c",
+              "modules/ultrasonic",
+              "modules/tm1637"
+            ]
+          },
+          {
+            "group": "Ejemplos",
+            "pages": [
+              "examples/basic",
+              "examples/digital",
+              "examples/analog",
+              "examples/sensors",
+              "examples/motors-displays"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Full Spanish translation of Arduino syntax (setup, loop, if/else, for, while, switch)",
+    "Spanish data types: entero, flotante, booleano, cadena, arreglo, and more",
+    "Spanish constants: ALTO, BAJO, ENTRADA, SALIDA, VERDADERO, FALSO",
+    "Spanish math functions: absoluto, raizCuadrada, seno, coseno, aleatorio, esPar",
+    "Spanish pin functions: configurarEntrada, configurarSalida, leerPin, encender, apagar",
+    "Optional modules for Serial, Servo, RGB LED, Stepper motor, EEPROM, LCD I2C, Ultrasonic sensor, TM1637 display",
+    "Compatible with most Arduino boards (architectures=*)",
+    "Practical examples included for learning"
+  ],
+  "publicApiSurface": [
+    "#include <Cod-ES.h>",
+    "inicio / bucle / fin (setup/loop/})",
+    "si / entonces / si_no / si_no_si (if/else control flow)",
+    "repetir / mientras / hacer / para_cada (loops)",
+    "elegir / caso / predeterminado (switch/case)",
+    "entero / flotante / booleano / cadena / Cadena (data types)",
+    "configurarEntrada(pin, pullup) / configurarSalida(pin)",
+    "leerPin(pin, tipo) / salidaDigital(pin, valor) / salidaAnalogica(pin, valor)",
+    "encender(pin) / apagar(pin)",
+    "esperar(tiempo, unidad) with MILISEGUNDOS / SEGUNDOS / MICROSEGUNDOS",
+    "Serie.iniciar(baud) / Serie.imprimir(val) / Serie.imprimirEnNuevaLinea(val)",
+    "LedRGB(rPin, gPin, bPin).cambiarColor(r, g, b)",
+    "Ultrasonico(trigPin, echoPin).obtenerDistancia()",
+    "INCLUIR_SERIE / INCLUIR_SERVO / INCLUIR_LED_RGB / INCLUIR_MOTOR_PAP / INCLUIR_EEPROM / INCLUIR_LCD_I2C / INCLUIR_ULTRASONICO / INCLUIR_TM1637"
+  ]
+}

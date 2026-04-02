@@ -1,0 +1,169 @@
+---
+title: "Módulo Serie (comunicación serial)"
+description: "Comunica el Arduino con la computadora u otros dispositivos usando el puerto serie. Envía y recibe datos en tiempo real a través del monitor serial."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_SERIE` **antes** de incluir `Cod-ES.h`.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+```
+
+## Objeto `Serie`
+
+El módulo expone una instancia global llamada `Serie` (de la clase `SerieClass`). No es necesario crear instancias adicionales.
+
+---
+
+## Constantes de formato
+
+Estas constantes se usan en métodos de impresión para especificar la base numérica de salida.
+
+| Constante          | Equivalente Arduino | Descripción                  |
+| ------------------ | ------------------- | ---------------------------- |
+| `SERIE_BINARIO`    | `SERIAL_BINARY`     | Formato binario (base 2)     |
+| `SERIE_OCTAL`      | `SERIAL_OCTAL`      | Formato octal (base 8)       |
+| `SERIE_DECIMAL`    | `SERIAL_DECIMAL`    | Formato decimal (base 10)    |
+| `SERIE_HEXADECIMAL`| `SERIAL_HEX`        | Formato hexadecimal (base 16)|
+
+---
+
+## Métodos
+
+### Iniciar y terminar
+
+<ParamField path="Serie.iniciar" type="void">
+  Inicia la comunicación serie a la velocidad especificada. Equivalente a `Serial.begin()`.
+
+  **Parámetro:** `baudRate` — velocidad en baudios (ej: `9600`, `115200`).
+</ParamField>
+
+<ParamField path="Serie.terminar" type="void">
+  Finaliza la comunicación serie y libera el pin. Equivalente a `Serial.end()`.
+</ParamField>
+
+---
+
+### Verificar disponibilidad
+
+<ParamField path="Serie.disponible" type="int">
+  Retorna la cantidad de bytes disponibles para leer en el búfer de entrada. Retorna `0` si no hay datos. Equivalente a `Serial.available()`.
+</ParamField>
+
+<ParamField path="Serie.disponibleParaEscritura" type="int">
+  Retorna la cantidad de bytes libres en el búfer de salida. Equivalente a `Serial.availableForWrite()`.
+</ParamField>
+
+---
+
+### Imprimir y escribir
+
+<ParamField path="Serie.imprimir" type="void">
+  Imprime un valor por el puerto serie **sin** salto de línea al final. Acepta cualquier tipo: `int`, `float`, `String`, `char`, etc. Equivalente a `Serial.print()`.
+
+  **Parámetro:** `valor` — el valor a imprimir.
+</ParamField>
+
+<ParamField path="Serie.imprimirEnNuevaLinea" type="void">
+  Imprime un valor por el puerto serie **con** salto de línea al final. Equivalente a `Serial.println()`.
+
+  **Parámetro:** `valor` — el valor a imprimir.
+</ParamField>
+
+<ParamField path="Serie.escribir" type="void">
+  Envía datos crudos (bytes) al puerto serie. Equivalente a `Serial.write()`.
+
+  **Parámetro:** `valor` — byte o buffer de bytes a enviar.
+</ParamField>
+
+<ParamField path="Serie.vaciar" type="void">
+  Espera a que todos los datos del búfer de salida sean enviados. Equivalente a `Serial.flush()`.
+</ParamField>
+
+---
+
+### Leer datos
+
+<ParamField path="Serie.leer" type="int">
+  Lee y consume el próximo byte disponible. Retorna `-1` si no hay datos. Equivalente a `Serial.read()`.
+</ParamField>
+
+<ParamField path="Serie.espiar" type="int">
+  Lee el próximo byte **sin** consumirlo del búfer. Equivalente a `Serial.peek()`.
+</ParamField>
+
+<ParamField path="Serie.leerEntero" type="int">
+  Espera y lee un número entero desde el puerto serie. Equivalente a `Serial.parseInt()`.
+</ParamField>
+
+<ParamField path="Serie.leerFlotante" type="float">
+  Espera y lee un número con decimales desde el puerto serie. Equivalente a `Serial.parseFloat()`.
+</ParamField>
+
+<ParamField path="Serie.leerCadena" type="String">
+  Lee caracteres hasta que se agota el tiempo de espera y los retorna como un `String`. Equivalente a `Serial.readString()`.
+</ParamField>
+
+<ParamField path="Serie.leerCadenaHastaEncontrar" type="String">
+  Lee caracteres hasta encontrar el carácter terminador y los retorna como un `String`. Equivalente a `Serial.readStringUntil()`.
+
+  **Parámetro:** `terminador` — carácter `char` que actúa como fin de lectura (ej: `'\n'`).
+</ParamField>
+
+<ParamField path="Serie.leerBytes" type="size_t">
+  Lee hasta `longitud` bytes y los almacena en `buffer`. Retorna la cantidad de bytes leídos. Equivalente a `Serial.readBytes()`.
+
+  **Parámetros:** `buffer` — arreglo `char[]` donde se almacenan los datos; `longitud` — cantidad máxima de bytes a leer.
+</ParamField>
+
+<ParamField path="Serie.leerBytesHastaEncontrar" type="size_t">
+  Lee bytes hasta encontrar el carácter `terminador` y los almacena en `buffer`. Retorna la cantidad de bytes leídos. Equivalente a `Serial.readBytesUntil()`.
+
+  **Parámetros:** `terminador` — carácter de fin de lectura; `buffer` — arreglo `char[]` de destino; `longitud` — tamaño máximo del buffer.
+</ParamField>
+
+---
+
+### Configuración de tiempo
+
+<ParamField path="Serie.establecerTiempoDeEspera" type="void">
+  Define el tiempo máximo de espera (en milisegundos) para las operaciones de lectura. Por defecto es 1000 ms. Equivalente a `Serial.setTimeout()`.
+
+  **Parámetro:** `timeout` — tiempo de espera en milisegundos.
+</ParamField>
+
+---
+
+## Ejemplo completo
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+inicio
+  Serie.iniciar(9600); // Iniciar la comunicación a 9600 baudios
+  Serie.establecerTiempoDeEspera(2000); // Tiempo de espera: 2 segundos
+  Serie.imprimirEnNuevaLinea("Listo. Enviá un número:");
+fin
+
+bucle
+  si (Serie.disponible() > 0) {
+    entero valor = Serie.leerEntero(); // Leer un número entero
+    Serie.imprimir("Recibí: ");
+    Serie.imprimir(valor, SERIE_DECIMAL);
+    Serie.imprimir(" | Hex: ");
+    Serie.imprimir(valor, SERIE_HEXADECIMAL);
+    Serie.imprimir(" | Bin: ");
+    Serie.imprimirEnNuevaLinea(valor, SERIE_BINARIO);
+  }
+fin
+```
+
+<Tip>
+  Podés combinar `INCLUIR_SERIE` con otros módulos en el mismo programa. Simplemente agregá todos los `#define` necesarios antes de `#include <Cod-ES.h>`.
+</Tip>

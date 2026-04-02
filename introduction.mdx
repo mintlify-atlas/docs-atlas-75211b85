@@ -1,0 +1,75 @@
+---
+title: "Introducción a Cod-ES"
+description: "Cod-ES es una librería de Arduino que traduce la sintaxis de programación al español, ideal para principiantes, educadores y hablantes nativos del idioma."
+---
+
+## ¿Qué es Cod-ES?
+
+**Cod-ES** es una librería para Arduino que permite programar placas Arduino usando palabras clave, funciones y constantes en español. En lugar de escribir `void setup()`, `digitalWrite` o `HIGH`, puedes escribir `inicio`, `salidaDigital` y `ALTO`.
+
+La librería fue creada por Franco Martino y está pensada para principiantes, educadores y cualquier persona que encuentre más natural trabajar en su idioma nativo.
+
+## Características principales
+
+- **Sintaxis en español**: Todas las funciones, constantes y estructuras de control están traducidas al español.
+- **Compatibilidad amplia**: Funciona con la mayoría de las placas Arduino (compatible con todas las arquitecturas, `architectures=*`).
+- **Módulos opcionales**: Incluye soporte para servos, pantallas LCD, motores paso a paso, sensores ultrasónicos y más, todos activables de forma independiente.
+- **Ejemplos incluidos**: La librería viene con ejemplos prácticos listos para usar.
+- **Sin sobrecarga en tiempo de ejecución**: Las traducciones se implementan mediante macros del preprocesador (`#define`), por lo que no tienen ningún costo adicional en tiempo de ejecución.
+
+## Cómo funciona
+
+Cod-ES utiliza directivas `#define` del preprocesador de C++ para mapear cada término en español a su equivalente en Arduino/C++. Esto ocurre en tiempo de compilación, antes de que el código llegue al microcontrolador.
+
+Por ejemplo:
+
+```cpp
+#define inicio      void setup(){
+#define bucle       void loop(){
+#define fin         }
+#define salidaDigital  digitalWrite
+#define ALTO        HIGH
+#define BAJO        LOW
+```
+
+Cuando escribes código en Cod-ES, el compilador lo transforma automáticamente al C++ estándar de Arduino. El resultado final es idéntico al código original.
+
+## Módulos opcionales
+
+Cod-ES incluye módulos adicionales que se activan definiendo una constante antes de incluir la librería. Esto mantiene el tamaño de compilación reducido: solo se incluye lo que el proyecto necesita.
+
+| Constante              | Módulo que activa                                           |
+| ---------------------- | ----------------------------------------------------------- |
+| `INCLUIR_SERIE`        | Comunicación serie (`Serie`, equivalente a `Serial`)        |
+| `INCLUIR_SERVO`        | Control de servomotores                                     |
+| `INCLUIR_LED_RGB`      | Control de LEDs RGB                                         |
+| `INCLUIR_MOTOR_PAP`    | Control de motores paso a paso                              |
+| `INCLUIR_EEPROM`       | Lectura y escritura en memoria EEPROM                       |
+| `INCLUIR_LCD_I2C`      | Pantallas LCD por I2C                                       |
+| `INCLUIR_ULTRASONICO`  | Sensor ultrasónico de distancia                             |
+| `INCLUIR_TM1637`       | Display de 7 segmentos con chip TM1637                      |
+
+## Compatibilidad
+
+Cod-ES es compatible con **todas las arquitecturas de Arduino** (`architectures=*`). Esto incluye placas como Arduino Uno, Nano, Mega, Leonardo, MKR, y otros modelos compatibles con el entorno de Arduino IDE.
+
+<Note>
+  Cod-ES requiere que el entorno de desarrollo sea compatible con `Arduino.h`. No está diseñado para ser usado fuera del ecosistema Arduino.
+</Note>
+
+## Licencia
+
+Cod-ES está distribuido bajo la licencia **Apache-2.0**. Puedes usarlo, modificarlo y distribuirlo libremente, incluso en proyectos comerciales, siempre que se incluya el aviso de licencia correspondiente.
+
+---
+
+## Próximos pasos
+
+<CardGroup cols={2}>
+  <Card title="Instalación" icon="download" href="/installation">
+    Descarga e instala Cod-ES en el IDE de Arduino en pocos pasos.
+  </Card>
+  <Card title="Inicio rápido" icon="bolt" href="/quickstart">
+    Escribe tu primer programa en español con el ejemplo de parpadeo de LED.
+  </Card>
+</CardGroup>

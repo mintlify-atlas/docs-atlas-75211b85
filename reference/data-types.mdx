@@ -1,0 +1,143 @@
+---
+title: "Tipos de datos"
+description: "Tipos de datos primitivos, modificadores y estructuras disponibles en Cod-ES para declarar variables y funciones."
+---
+
+Cod-ES provee traducciones al español de todos los tipos de datos nativos de Arduino y sus modificadores.
+
+## Tipos primitivos
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `arreglo` | `array` | Colección de elementos del mismo tipo |
+| `booleano` | `bool` | Valor verdadero o falso |
+| `byte` | `byte` | Entero sin signo de 8 bits (0–255) |
+| `caracter` | `char` | Carácter ASCII de 8 bits |
+| `doble` | `double` | Número de punto flotante de doble precisión |
+| `flotante` | `float` | Número de punto flotante de precisión simple |
+| `entero` | `int` | Entero con signo de 16 bits (–32 768 a 32 767) |
+| `largo` | `long` | Entero con signo de 32 bits |
+| `corto` | `short` | Entero con signo de 16 bits |
+| `longitud_t` | `size_t` | Tipo sin signo para representar tamaños o índices |
+| `cadena` | `string` | Cadena de caracteres C |
+| `Cadena` | `String` | Objeto String de Arduino |
+| `funcion` | `void` | Tipo de retorno vacío para funciones |
+| `palabra` | `word` | Entero sin signo de 16 bits |
+
+### Ejemplos de declaración
+
+```cpp
+booleano bandera        = VERDADERO;
+byte     valor          = 255;
+caracter letra          = 'A';
+doble    pi             = 3.14159265358979;
+flotante temperatura    = 23.5;
+entero   contador       = 0;
+largo    tiempoTotal    = 1000000L;
+corto    distancia      = 300;
+longitud_t longitudArr  = 8;
+cadena   saludo[]       = "Hola";
+Cadena   mensaje        = "Hola Arduino";
+palabra  mascara        = 0xFFFF;
+```
+
+### Funciones sin retorno
+
+```cpp
+funcion parpadear parametros entero pin) {
+  encender(pin);
+  esperar(500);
+  apagar(pin);
+}
+```
+
+## Arreglos
+
+```cpp
+entero  lecturas[5]       = {0, 1, 2, 3, 4};
+flotante mediciones[3]    = {1.1, 2.2, 3.3};
+caracter nombre[]         = "Arduino";
+```
+
+<Note>
+En Arduino, `arreglo` es un alias de `array`. Para declarar arreglos de tamaño fijo se utiliza la sintaxis de corchetes `[]` estándar de C/C++.
+</Note>
+
+## Modificadores
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `sin_signo` | `unsigned` | Elimina el signo, duplicando el rango positivo |
+| `constante` | `const` | Declara un valor que no puede modificarse |
+| `estatico` | `static` | Persiste el valor entre llamadas a la función |
+| `volatil` | `volatile` | Indica que la variable puede cambiar en cualquier momento (útil con interrupciones) |
+| `alcance` | `scope` | Define el ámbito de una variable o función |
+
+### Ejemplos con modificadores
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+// Variable constante
+constante flotante GRAVEDAD = 9.81;
+
+// Entero sin signo (0 a 65 535 en Arduino Uno)
+sin_signo entero pasos = 60000;
+
+// Variable que persiste entre llamadas
+funcion contarLlamadas() {
+  estatico entero veces = 0;
+  veces++;
+  Serie.imprimirEnNuevaLinea(veces);
+}
+
+// Variable accedida desde una ISR
+volatil booleano banderaISR = FALSO;
+```
+
+<Warning>
+Siempre declara como `volatil` las variables compartidas entre el programa principal y una rutina de interrupción (ISR). De lo contrario, el compilador puede optimizarlas incorrectamente.
+</Warning>
+
+## Estructuras
+
+`estructura` traduce la palabra clave `struct` de C/C++, permitiendo agrupar varios campos bajo un mismo tipo.
+
+```cpp
+estructura Sensor {
+  entero pin;
+  flotante valor;
+  booleano activo;
+};
+
+Sensor luz;
+luz.pin    = 3;
+luz.valor  = 0.0;
+luz.activo = VERDADERO;
+```
+
+## Operador `bytesOcupados`
+
+`bytesOcupados` es equivalente al operador `sizeof` y devuelve el tamaño en bytes que ocupa un tipo o variable.
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+entero   n;
+flotante f;
+
+Serie.imprimir("entero ocupa: ");
+Serie.imprimirEnNuevaLinea(bytesOcupados(n));   // 2 en Arduino Uno
+
+Serie.imprimir("flotante ocupa: ");
+Serie.imprimirEnNuevaLinea(bytesOcupados(f));   // 4
+
+Serie.imprimir("largo ocupa: ");
+Serie.imprimirEnNuevaLinea(bytesOcupados(largo)); // 4
+```
+
+<Tip>
+Usa `bytesOcupados` para escribir código portable que se adapte automáticamente a diferentes arquitecturas de Arduino.
+</Tip>

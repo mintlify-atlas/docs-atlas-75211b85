@@ -1,80 +1,153 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "Inicio rápido"
+description: "Escribe tu primer programa con Cod-ES: un LED parpadeante con sintaxis en español y un ejemplo de comunicación serie."
 ---
 
-## Get started in three steps
+## Tu primer programa: parpadeo de LED
 
-Get your documentation site running locally and make your first customization.
+El ejemplo más clásico de Arduino es hacer parpadear el LED integrado en la placa. A continuación se muestra el mismo programa escrito en Arduino estándar (C++) y en Cod-ES, para que puedas comparar la sintaxis.
 
-### Step 1: Set up your local environment
+<CodeGroup>
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+```cpp Arduino estándar
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+}
 
-### Step 2: Deploy your changes
+void loop() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  delay(1000);
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(1000);
+}
+```
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+```cpp Cod-ES
+#include <Cod-ES.h>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+inicio
+  configurarSalida(LED_INTERNO);
+fin
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+bucle
+  salidaDigital(LED_INTERNO, ALTO);
+  esperar(1, SEGUNDOS);
+  salidaDigital(LED_INTERNO, BAJO);
+  esperar(1, SEGUNDOS);
+fin
+```
 
-### Step 3: Go live
+</CodeGroup>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+### Qué hace cada palabra clave
 
-## Next steps
+| Cod-ES                          | Equivalente en Arduino              | Descripción                                                                          |
+| ------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
+| `inicio`                        | `void setup() {`                    | Define el bloque de configuración inicial, que se ejecuta una sola vez.              |
+| `bucle`                         | `void loop() {`                     | Define el bloque principal que se repite continuamente.                              |
+| `fin`                           | `}`                                 | Cierra cualquier bloque de código.                                                   |
+| `configurarSalida(pin)`         | `pinMode(pin, OUTPUT)`              | Configura un pin como salida digital.                                                |
+| `LED_INTERNO`                   | `LED_BUILTIN`                       | Referencia al pin del LED integrado en la placa.                                     |
+| `salidaDigital(pin, valor)`     | `digitalWrite(pin, valor)`          | Establece el nivel de voltaje (alto o bajo) en un pin de salida.                     |
+| `ALTO`                          | `HIGH`                              | Nivel alto (5 V o 3.3 V según la placa).                                             |
+| `BAJO`                          | `LOW`                               | Nivel bajo (0 V).                                                                    |
+| `esperar(tiempo, unidad)`       | `delay(ms)` / `delayMicroseconds()` | Pausa la ejecución durante el tiempo indicado en la unidad elegida.                  |
+| `SEGUNDOS`                      | _(conversión interna a ms)_         | Unidad de tiempo en segundos. También existen `MILISEGUNDOS` y `MICROSEGUNDOS`.      |
 
-Now that you have your docs running, explore these key features:
+<Tip>
+  La función `esperar` acepta tres unidades de tiempo: `MILISEGUNDOS`, `SEGUNDOS` y `MICROSEGUNDOS`. Esto evita tener que convertir manualmente los valores al llamar a `delay`.
+</Tip>
+
+---
+
+## Ejemplo con comunicación serie
+
+Para enviar mensajes al monitor serie del IDE, activa el módulo `INCLUIR_SERIE` antes de incluir la librería. Esto habilita el objeto `Serie`, equivalente en español de `Serial`.
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+inicio
+  Serie.iniciar(9600);
+fin
+
+bucle
+  salidaDigital(LED_INTERNO, ALTO);
+  Serie.imprimirEnNuevaLinea("LED encendido");
+  esperar(1, SEGUNDOS);
+
+  salidaDigital(LED_INTERNO, BAJO);
+  Serie.imprimirEnNuevaLinea("LED apagado");
+  esperar(1, SEGUNDOS);
+fin
+```
+
+<Warning>
+  La directiva `#define INCLUIR_SERIE` debe aparecer **antes** de `#include <Cod-ES.h>`. Si se coloca después, el módulo no se cargará y el programa no compilará.
+</Warning>
+
+### Funciones del objeto `Serie`
+
+| Método                                   | Equivalente en Arduino               | Descripción                                                     |
+| ---------------------------------------- | ------------------------------------ | --------------------------------------------------------------- |
+| `Serie.iniciar(baudRate)`                | `Serial.begin(baudRate)`             | Inicia la comunicación serie con la velocidad indicada.         |
+| `Serie.imprimir(valor)`                  | `Serial.print(valor)`                | Imprime un valor sin salto de línea al final.                   |
+| `Serie.imprimirEnNuevaLinea(valor)`      | `Serial.println(valor)`              | Imprime un valor seguido de un salto de línea.                  |
+| `Serie.leer()`                           | `Serial.read()`                      | Lee un byte del buffer de entrada.                              |
+| `Serie.disponible()`                     | `Serial.available()`                 | Devuelve la cantidad de bytes disponibles para leer.            |
+| `Serie.leerCadena()`                     | `Serial.readString()`                | Lee una cadena de texto completa desde el buffer.               |
+| `Serie.terminar()`                       | `Serial.end()`                       | Finaliza la comunicación serie.                                 |
+
+---
+
+## Estructuras de control
+
+Cod-ES también traduce las estructuras de control de flujo más comunes de C++:
+
+```cpp
+#include <Cod-ES.h>
+
+int contador = 0;
+
+inicio
+  configurarSalida(LED_INTERNO);
+fin
+
+bucle
+  si (contador < 5) entonces
+    salidaDigital(LED_INTERNO, ALTO);
+    esperar(200, MILISEGUNDOS);
+    salidaDigital(LED_INTERNO, BAJO);
+    esperar(200, MILISEGUNDOS);
+    contador = contador + 1;
+  si_no
+    salidaDigital(LED_INTERNO, BAJO);
+  fin
+fin
+```
+
+| Cod-ES       | Equivalente en C++ | Descripción                                            |
+| ------------ | ------------------ | ------------------------------------------------------ |
+| `si`         | `if (`             | Inicio de una condición.                               |
+| `entonces`   | `) {`              | Abre el bloque que se ejecuta si la condición se cumple.|
+| `si_no`      | `} else {`         | Bloque alternativo si la condición es falsa.           |
+| `si_no_si`   | `} else if (`      | Condición alternativa adicional.                       |
+| `mientras`   | `while (`          | Bucle que se repite mientras la condición sea verdadera.|
+| `repetir`    | `for (`            | Bucle con variable, condición e intervalo.             |
+| `romper`     | `break`            | Sale del bucle o del bloque `elegir`.                  |
+| `devolver`   | `return`           | Devuelve un valor desde una función.                   |
+| `continuar`  | `continue`         | Salta a la siguiente iteración del bucle.              |
+
+---
+
+## Próximos pasos
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Referencia del lenguaje" icon="book" href="/reference/control-flow">
+    Consulta todas las funciones, constantes y estructuras de control disponibles en Cod-ES.
+  </Card>
+  <Card title="Instalación" icon="download" href="/installation">
+    Revisa cómo instalar la librería y activar módulos opcionales.
+  </Card>
 </CardGroup>
-
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>

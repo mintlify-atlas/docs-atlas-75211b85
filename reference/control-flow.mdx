@@ -1,0 +1,219 @@
+---
+title: "Estructuras de control"
+description: "Palabras clave para controlar el flujo del programa: condicionales, bucles, selección y operadores lógicos."
+---
+
+Las estructuras de control de Cod-ES traducen al español todas las palabras reservadas de Arduino para definir el flujo de ejecución.
+
+## Estructura del programa
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `inicio` | `void setup(){` | Inicio del bloque de configuración |
+| `bucle` | `void loop(){` | Inicio del bloque de ejecución continua |
+| `fin` | `}` | Cierra cualquier bloque de código |
+| `cerrar` | `}` | Cierra cualquier bloque de código (alias de `fin`) |
+
+```cpp
+#include <Cod-ES.h>
+
+inicio
+  // Código de configuración inicial
+fin
+
+bucle
+  // Código que se repite indefinidamente
+fin
+```
+
+## Literales booleanos
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `VERDADERO` | `true` | Valor verdadero |
+| `FALSO` | `false` | Valor falso |
+| `NULO` | `NULL` | Puntero nulo |
+| `CERO` | `0` | Valor numérico cero |
+
+```cpp
+booleano encendido = VERDADERO;
+booleano apagado   = FALSO;
+caracter *puntero  = NULO;
+entero contador    = CERO;
+```
+
+## Condicionales
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `si` | `if (` | Evalúa una condición |
+| `entonces` | `) {` | Abre el bloque que se ejecuta si la condición es verdadera |
+| `si_no` | `} else {` | Bloque alternativo |
+| `si_no_si` | `} else if (` | Condición alternativa encadenada |
+
+```cpp
+entero temperatura = 30;
+
+si temperatura > 25 entonces
+  salidaDigital(LED_INTERNO, ALTO);
+si_no_si temperatura > 15 entonces
+  salidaDigital(LED_INTERNO, BAJO);
+si_no
+  salidaDigital(LED_INTERNO, BAJO);
+fin
+```
+
+<Note>
+`entonces` incluye el paréntesis de cierre de la condición y la llave de apertura del bloque. Siempre debe aparecer después de la expresión booleana.
+</Note>
+
+## Bucles
+
+### `repetir` — bucle for
+
+```
+repetir(inicializacion, condicion, incremento)
+```
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+bucle
+  repetir(entero i = 0, i < 10, i++)
+    Serie.imprimirEnNuevaLinea(i);
+  fin
+fin
+```
+
+### `para_cada` — bucle for-each
+
+```
+para_cada(elemento, arreglo)
+```
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+bucle
+  entero numeros[] = {1, 2, 3, 4, 5};
+  para_cada(n, numeros)
+    Serie.imprimirEnNuevaLinea(n);
+  fin
+fin
+```
+
+### `mientras` — bucle while
+
+```cpp
+entero x = 0;
+
+mientras (x < 5) {
+  x++;
+}
+```
+
+### `hacer` — bucle do-while
+
+```cpp
+entero contador = 0;
+
+hacer {
+  contador++;
+} mientras (contador < 3);
+```
+
+## Selección con `elegir`
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `elegir(i)` | `switch(i){` | Abre la estructura de selección |
+| `caso` | `case` | Define un caso |
+| `predeterminado` | `default` | Caso por defecto |
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+entero opcion = 2;
+
+bucle
+  elegir(opcion)
+    caso 1:
+      Serie.imprimirEnNuevaLinea("Uno");
+      romper
+    caso 2:
+      Serie.imprimirEnNuevaLinea("Dos");
+      romper
+    predeterminado:
+      Serie.imprimirEnNuevaLinea("Otro");
+      romper
+  fin
+fin
+```
+
+## Control de flujo
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `continuar` | `continue` | Salta a la siguiente iteración del bucle |
+| `romper` | `break;` | Sale del bucle o del bloque `elegir` |
+| `devolver` | `return` | Devuelve un valor desde una función |
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+bucle
+  repetir(entero i = 0, i < 10, i++)
+    si i es_igual 5 entonces
+      continuar
+    fin
+    si i es_igual 8 entonces
+      romper
+    fin
+    Serie.imprimirEnNuevaLinea(i);
+  fin
+fin
+```
+
+## Parámetros de función
+
+`parametros` se traduce como `(`, lo que permite declarar funciones con una sintaxis más descriptiva:
+
+```cpp
+entero sumar parametros entero a, entero b) {
+  devolver a + b;
+}
+```
+
+<Tip>
+`parametros` reemplaza el paréntesis de apertura `(` de la lista de argumentos de una función.
+</Tip>
+
+## Operadores lógicos
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `es_igual` | `==` | Igualdad |
+| `es_diferente` | `!=` | Desigualdad |
+| `y` | `&&` | AND lógico |
+| `o` | `\|\|` | OR lógico |
+| `no` | `!` | NOT lógico |
+
+```cpp
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+entero nivel = 3;
+booleano activo = VERDADERO;
+
+si nivel > 1 y activo es_igual VERDADERO entonces
+  Serie.imprimirEnNuevaLinea("Sistema activo en nivel alto");
+fin
+
+si nivel es_diferente 0 o no activo entonces
+  Serie.imprimirEnNuevaLinea("Condición alternativa");
+fin
+```

@@ -1,0 +1,267 @@
+---
+title: "Módulo LCD I2C"
+description: "Mostrá texto en pantallas LCD alfanuméricas 16x2 o 20x4 usando el protocolo I2C. Solo se necesitan los pines SDA y SCL, sin cables de datos adicionales."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_LCD_I2C` **antes** de incluir `Cod-ES.h`. La librería `Wire.h` se incluye automáticamente.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_LCD_I2C
+#include <Cod-ES.h>
+```
+
+---
+
+## Conexión de hardware
+
+| Pin del módulo I2C | Pin en Arduino Uno |
+| ------------------ | ------------------ |
+| SDA                | A4                 |
+| SCL                | A5                 |
+| VCC                | 5V                 |
+| GND                | GND                |
+
+<Tip>
+  La dirección I2C más común es `0x27`. Si la pantalla no funciona, probá con `0x3F`. Podés detectar la dirección real usando un escáner I2C.
+</Tip>
+
+---
+
+## Clase `LCD_I2C`
+
+Cada pantalla que uses en tu proyecto requiere su propia instancia de `LCD_I2C`.
+
+### Constructor
+
+<ParamField path="LCD_I2C" type="constructor">
+  Crea una instancia del display LCD I2C.
+
+  **Parámetros:**
+
+  - `lcd_Addr` — dirección I2C del módulo (normalmente `0x27` o `0x3F`).
+  - `lcd_cols` — número de columnas del display (ej: `16` para un 16x2).
+  - `lcd_rows` — número de filas del display (ej: `2` para un 16x2).
+</ParamField>
+
+```cpp
+LCD_I2C lcd(0x27, 16, 2); // Pantalla 16 columnas × 2 filas, dirección 0x27
+```
+
+---
+
+## Métodos de inicialización
+
+<ParamField path="lcd.inicializar" type="void">
+  Inicializa el display y lo prepara para recibir comandos. Debe ser el primer método que llames en `inicio`. Configura el modo de 4 bits, el número de líneas y el tamaño de los caracteres.
+</ParamField>
+
+<ParamField path="lcd.iniciar" type="void">
+  Alternativa a `inicializar()`. Permite especificar columnas, filas y tamaño de carácter explícitamente.
+
+  **Parámetros:** `cols` — columnas; `rows` — filas; `charsize` — tamaño de fuente (`LCD_5x8DOTS` por defecto).
+</ParamField>
+
+---
+
+## Métodos de control del display
+
+<ParamField path="lcd.limpiar" type="void">
+  Borra todo el contenido de la pantalla y mueve el cursor al origen (columna 0, fila 0).
+</ParamField>
+
+<ParamField path="lcd.regresarAlInicio" type="void">
+  Mueve el cursor al origen sin borrar el contenido de la pantalla.
+</ParamField>
+
+<ParamField path="lcd.encenderDisplay" type="void">
+  Enciende la pantalla (muestra el contenido en memoria).
+</ParamField>
+
+<ParamField path="lcd.apagarDisplay" type="void">
+  Apaga la pantalla sin borrar el contenido en memoria.
+</ParamField>
+
+---
+
+## Métodos de iluminación
+
+<ParamField path="lcd.encenderLuz" type="void">
+  Enciende la luz de fondo (backlight) del display.
+</ParamField>
+
+<ParamField path="lcd.apagarLuz" type="void">
+  Apaga la luz de fondo del display.
+</ParamField>
+
+---
+
+## Métodos del cursor
+
+<ParamField path="lcd.ajustarCursor" type="void">
+  Posiciona el cursor en la columna y fila indicadas.
+
+  **Parámetros:** `col` — columna (0 a `cols - 1`); `row` — fila (0 a `rows - 1`).
+</ParamField>
+
+<ParamField path="lcd.encenderCursor" type="void">
+  Muestra el cursor como una línea subrayada debajo del carácter actual.
+</ParamField>
+
+<ParamField path="lcd.apagarCursor" type="void">
+  Oculta el cursor subrayado.
+</ParamField>
+
+<ParamField path="lcd.encenderParpadeo" type="void">
+  Activa el cursor parpadeante (bloque sólido que parpadea).
+</ParamField>
+
+<ParamField path="lcd.apagarParpadeo" type="void">
+  Desactiva el cursor parpadeante.
+</ParamField>
+
+---
+
+## Métodos de escritura
+
+<ParamField path="lcd.imprimirCadena" type="void">
+  Imprime una cadena de caracteres (`const char[]`) en la posición actual del cursor.
+
+  **Parámetro:** texto a mostrar entre comillas dobles.
+</ParamField>
+
+<ParamField path="lcd.escribir" type="size_t">
+  Escribe un único carácter (byte) en la posición actual del cursor. Equivalente a `write()` de la clase `Print`.
+
+  **Parámetro:** `value` — código ASCII del carácter.
+</ParamField>
+
+<ParamField path="lcd.comando" type="void">
+  Envía un comando directo al controlador HD44780 del LCD. Para uso avanzado.
+
+  **Parámetro:** `value` — byte de comando.
+</ParamField>
+
+---
+
+## Métodos de desplazamiento
+
+<ParamField path="lcd.deslizarDisplayIzquierda" type="void">
+  Desplaza todo el contenido visible del display un carácter hacia la izquierda.
+</ParamField>
+
+<ParamField path="lcd.deslizarDisplayDerecha" type="void">
+  Desplaza todo el contenido visible del display un carácter hacia la derecha.
+</ParamField>
+
+<ParamField path="lcd.deslizarAutomaticamente" type="void">
+  Activa el desplazamiento automático: cada carácter nuevo empuja el texto existente.
+</ParamField>
+
+<ParamField path="lcd.noDeslizarAutomaticamente" type="void">
+  Desactiva el desplazamiento automático (comportamiento por defecto).
+</ParamField>
+
+---
+
+## Métodos de dirección de texto
+
+<ParamField path="lcd.izquierdaADerecha" type="void">
+  Configura la escritura de izquierda a derecha (modo por defecto).
+</ParamField>
+
+<ParamField path="lcd.derechaAIzquierda" type="void">
+  Configura la escritura de derecha a izquierda.
+</ParamField>
+
+<ParamField path="lcd.imprimirIzquierda" type="void">
+  Justifica el texto hacia la izquierda respecto al cursor en modo de desplazamiento automático.
+</ParamField>
+
+<ParamField path="lcd.imprimirDerecha" type="void">
+  Justifica el texto hacia la derecha respecto al cursor en modo de desplazamiento automático.
+</ParamField>
+
+---
+
+## Caracteres personalizados
+
+<ParamField path="lcd.crearCaracter" type="void">
+  Define un carácter personalizado en la memoria CGRAM del LCD. El display HD44780 admite hasta **8 caracteres personalizados** (posiciones 0–7).
+
+  **Parámetros:** `num` — posición en CGRAM (0–7); `rows` — arreglo de 8 bytes con los bits de cada fila del carácter (5 bits por fila).
+</ParamField>
+
+```cpp
+// Definir un símbolo de "corazón"
+byte corazon[8] = {
+  0b00000,
+  0b01010,
+  0b11111,
+  0b11111,
+  0b01110,
+  0b00100,
+  0b00000,
+  0b00000
+};
+
+lcd.crearCaracter(0, corazon); // Guardar en posición 0
+lcd.ajustarCursor(0, 0);
+lcd.escribir(0);               // Mostrar el carácter personalizado
+```
+
+---
+
+## Ejemplo completo
+
+```cpp
+#define INCLUIR_LCD_I2C
+#include <Cod-ES.h>
+
+LCD_I2C lcd(0x27, 16, 2); // Pantalla 16x2, dirección I2C 0x27
+
+inicio
+  lcd.inicializar();          // Iniciar el display
+  lcd.encenderLuz();          // Encender retroiluminación
+
+  lcd.ajustarCursor(0, 0);    // Cursor en columna 0, fila 0
+  lcd.imprimirCadena("Hola, mundo!");
+
+  lcd.ajustarCursor(0, 1);    // Cursor en columna 0, fila 1
+  lcd.imprimirCadena("Cod-ES v1.0");
+fin
+
+bucle
+fin
+```
+
+---
+
+## Ejemplo — contador en pantalla
+
+```cpp
+#define INCLUIR_LCD_I2C
+#include <Cod-ES.h>
+
+LCD_I2C lcd(0x27, 16, 2);
+entero contador = 0;
+
+inicio
+  lcd.inicializar();
+  lcd.encenderLuz();
+  lcd.ajustarCursor(0, 0);
+  lcd.imprimirCadena("Contador:");
+fin
+
+bucle
+  lcd.ajustarCursor(0, 1);
+  lcd.imprimirCadena("               "); // Limpiar la fila 1
+  lcd.ajustarCursor(0, 1);
+  lcd.escribir(contador + '0');         // Mostrar el valor
+  contador++;
+  esperar(1, SEGUNDOS);
+fin
+```

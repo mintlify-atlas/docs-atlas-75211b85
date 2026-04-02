@@ -1,0 +1,148 @@
+---
+title: "Módulo LED RGB"
+description: "Controlá un LED RGB de ánodo o cátodo común con la clase LedRGB. Configurá colores mezclando los valores rojo, verde y azul (0–255)."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_LED_RGB` **antes** de incluir `Cod-ES.h`.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_LED_RGB
+#include <Cod-ES.h>
+```
+
+---
+
+## Clase `LedRGB`
+
+Cada LED RGB que uses en tu proyecto requiere su propia instancia de la clase `LedRGB`. Al crear la instancia los tres pines se configuran automáticamente como salida (`OUTPUT`).
+
+### Constructor
+
+<ParamField path="LedRGB" type="constructor">
+  Crea una instancia del LED RGB y configura los pines indicados como salida.
+
+  **Parámetros:**
+
+  - `rPin` — pin digital PWM conectado al canal rojo (R).
+  - `gPin` — pin digital PWM conectado al canal verde (G).
+  - `bPin` — pin digital PWM conectado al canal azul (B).
+</ParamField>
+
+```cpp
+LedRGB miLed(9, 10, 11); // Rojo: pin 9 | Verde: pin 10 | Azul: pin 11
+```
+
+<Tip>
+  Los tres pines deben ser pines PWM (en Arduino Uno, los pines con símbolo `~`: 3, 5, 6, 9, 10, 11). De lo contrario, `analogWrite()` no producirá variación de color.
+</Tip>
+
+---
+
+## Métodos
+
+<ParamField path="miLed.cambiarColor" type="void">
+  Establece el color del LED mezclando los tres canales y lo enciende de inmediato. Los valores van de `0` (apagado) a `255` (máxima intensidad) por canal.
+
+  **Parámetros:**
+
+  - `rojo` — intensidad del canal rojo (0–255).
+  - `verde` — intensidad del canal verde (0–255).
+  - `azul` — intensidad del canal azul (0–255).
+</ParamField>
+
+<ParamField path="miLed.encender" type="void">
+  Enciende el LED con el último color configurado por `cambiarColor()`. No cambia el color almacenado.
+</ParamField>
+
+<ParamField path="miLed.apagar" type="void">
+  Apaga el LED poniendo los tres canales en `LOW`. El color almacenado se conserva para cuando se llame a `encender()` nuevamente.
+</ParamField>
+
+---
+
+## Referencia de colores comunes
+
+| Color       | Rojo | Verde | Azul |
+| ----------- | ---- | ----- | ---- |
+| Rojo        | 255  | 0     | 0    |
+| Verde       | 0    | 255   | 0    |
+| Azul        | 0    | 0     | 255  |
+| Blanco      | 255  | 255   | 255  |
+| Amarillo    | 255  | 255   | 0    |
+| Cian        | 0    | 255   | 255  |
+| Magenta     | 255  | 0     | 255  |
+| Naranja     | 255  | 165   | 0    |
+| Apagado     | 0    | 0     | 0    |
+
+---
+
+## Ejemplo completo — secuencia de colores
+
+```cpp
+#define INCLUIR_LED_RGB
+#include <Cod-ES.h>
+
+// Pines PWM: Rojo = 9, Verde = 10, Azul = 11
+LedRGB miLed(9, 10, 11);
+
+inicio
+fin
+
+bucle
+  miLed.cambiarColor(255, 0, 0);   // Rojo
+  esperar(1, SEGUNDOS);
+
+  miLed.cambiarColor(0, 255, 0);   // Verde
+  esperar(1, SEGUNDOS);
+
+  miLed.cambiarColor(0, 0, 255);   // Azul
+  esperar(1, SEGUNDOS);
+
+  miLed.cambiarColor(255, 255, 0); // Amarillo
+  esperar(1, SEGUNDOS);
+
+  miLed.cambiarColor(0, 255, 255); // Cian
+  esperar(1, SEGUNDOS);
+
+  miLed.cambiarColor(255, 0, 255); // Magenta
+  esperar(1, SEGUNDOS);
+
+  miLed.apagar();                  // Apagar
+  esperar(500, MILISEGUNDOS);
+
+  miLed.encender();                // Volver a encender con el último color (magenta)
+  esperar(500, MILISEGUNDOS);
+fin
+```
+
+---
+
+## Ejemplo — efecto de fundido (fade)
+
+```cpp
+#define INCLUIR_LED_RGB
+#include <Cod-ES.h>
+
+LedRGB miLed(9, 10, 11);
+
+inicio
+fin
+
+bucle
+  // Fundido de negro a rojo
+  repetir(entero i = 0, i <= 255, i++)
+    miLed.cambiarColor(i, 0, 0);
+    esperar(5, MILISEGUNDOS);
+  fin
+
+  // Fundido de rojo a negro
+  repetir(entero i = 255, i >= 0, i--)
+    miLed.cambiarColor(i, 0, 0);
+    esperar(5, MILISEGUNDOS);
+  fin
+fin
+```

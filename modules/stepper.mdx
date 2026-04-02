@@ -1,0 +1,144 @@
+---
+title: "Módulo Motor PAP (paso a paso)"
+description: "Controlá motores paso a paso unipolares y bipolares con la clase MotorPAP. Admite configuraciones de 2, 4 y 5 pines."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_MOTOR_PAP` **antes** de incluir `Cod-ES.h`.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_MOTOR_PAP
+#include <Cod-ES.h>
+```
+
+---
+
+## Clase `MotorPAP`
+
+La clase `MotorPAP` controla motores paso a paso configurando los pines de salida automáticamente al crear la instancia. Admite tres configuraciones de cableado según el tipo de motor y el driver utilizado.
+
+### Constructores
+
+<ParamField path="MotorPAP (2 pines)" type="constructor">
+  Crea una instancia para motores controlados con 2 pines (por ejemplo, usando un driver tipo L293D en modo paso completo simplificado).
+
+  **Parámetros:**
+
+  - `numeroPasos` — cantidad de pasos por revolución del motor (ej: `200` para un motor de 1.8° por paso).
+  - `pin1` — primer pin de control.
+  - `pin2` — segundo pin de control.
+</ParamField>
+
+<ParamField path="MotorPAP (4 pines)" type="constructor">
+  Crea una instancia para motores bipolares o unipolares controlados con 4 pines. Es la configuración más común para motores 28BYJ-48 con driver ULN2003 o motores NEMA con L298N.
+
+  **Parámetros:**
+
+  - `numeroPasos` — cantidad de pasos por revolución.
+  - `pin1`, `pin2`, `pin3`, `pin4` — los cuatro pines de control en orden.
+</ParamField>
+
+<ParamField path="MotorPAP (5 pines)" type="constructor">
+  Crea una instancia para motores unipolares de 5 cables.
+
+  **Parámetros:**
+
+  - `numeroPasos` — cantidad de pasos por revolución.
+  - `pin1`, `pin2`, `pin3`, `pin4`, `pin5` — los cinco pines de control.
+</ParamField>
+
+#### Ejemplo de instanciación
+
+```cpp
+// Motor de 200 pasos, driver con 4 pines
+MotorPAP motor(200, 8, 9, 10, 11);
+
+// Motor 28BYJ-48 con driver ULN2003 (2048 pasos por vuelta)
+MotorPAP motor28BYJ(2048, 8, 9, 10, 11);
+```
+
+---
+
+## Métodos
+
+<ParamField path="motor.ajustarVelocidad" type="void">
+  Establece la velocidad de rotación del motor en RPM (revoluciones por minuto). Debe llamarse antes de `paso()` para que tenga efecto.
+
+  **Parámetro:** `velocidad` — velocidad en RPM (tipo `long`). Por ejemplo, `60` equivale a 1 revolución por segundo para un motor de 60 pasos por vuelta.
+</ParamField>
+
+<ParamField path="motor.paso" type="void">
+  Mueve el motor la cantidad de pasos indicada. La función es **bloqueante**: el programa espera hasta completar todos los pasos antes de continuar.
+
+  - Valor **positivo** → gira en un sentido (horario).
+  - Valor **negativo** → gira en sentido contrario (antihorario).
+
+  **Parámetro:** `numeroPasos` — cantidad de pasos a dar. Puede ser negativo para cambiar de dirección.
+</ParamField>
+
+<ParamField path="motor.version" type="int">
+  Retorna el número de versión de la librería MotorPAP. Actualmente retorna `5`.
+</ParamField>
+
+---
+
+## Ejemplo completo — control con potenciómetro
+
+Este ejemplo es el oficial de la librería. Lee un potenciómetro conectado al pin analógico 0 y ajusta la posición del motor según el valor leído.
+
+```cpp
+#define INCLUIR_MOTOR_PAP
+#include <Cod-ES.h>
+
+constante entero PASOS = 100;
+
+MotorPAP motor(PASOS, 8, 9, 10, 11); // Motor con 4 pines
+
+entero previo = 0; // Almacena la posición previa del motor
+
+inicio
+  motor.ajustarVelocidad(30); // Velocidad: 30 RPM
+fin
+
+bucle
+  entero valor = leerPin(0, ANALOGICO); // Leer potenciómetro (0–1023)
+
+  motor.paso(valor - previo); // Mover la diferencia respecto al ciclo anterior
+  previo = valor;             // Actualizar posición previa
+fin
+```
+
+---
+
+## Ejemplo — vuelta completa
+
+```cpp
+#define INCLUIR_MOTOR_PAP
+#include <Cod-ES.h>
+
+// Motor 28BYJ-48: 2048 pasos por revolución completa
+MotorPAP motor(2048, 8, 9, 10, 11);
+
+inicio
+  motor.ajustarVelocidad(15); // 15 RPM
+fin
+
+bucle
+  motor.paso(2048);  // Una vuelta completa en sentido horario
+  esperar(1, SEGUNDOS);
+
+  motor.paso(-2048); // Una vuelta completa en sentido antihorario
+  esperar(1, SEGUNDOS);
+fin
+```
+
+<Warning>
+  La función `paso()` es bloqueante. El programa no avanza hasta que el motor termine de moverse. Si necesitás ejecutar otras tareas mientras el motor se mueve, considerá controlar el motor de forma manual dividiendo el movimiento en pasos pequeños dentro del `bucle`.
+</Warning>
+
+<Tip>
+  Para el popular motor **28BYJ-48** con driver **ULN2003**, usá `2048` como número de pasos por revolución y una velocidad de entre `5` y `15` RPM para un movimiento suave.
+</Tip>

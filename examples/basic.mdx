@@ -1,0 +1,229 @@
+---
+title: "Ejemplos básicos"
+description: "Ejemplos introductorios de Cod-ES: parpadeo de LED y barrido de servomotor."
+---
+
+Los ejemplos básicos son el punto de partida ideal para familiarizarse con la sintaxis de Cod-ES. Cubren las dos funciones fundamentales de todo sketch de Arduino — `inicio` y `bucle` — y demuestran el uso de salidas digitales, esperas y control de servomotores.
+
+## Parpadeo
+
+El ejemplo clásico de Arduino reescrito en español. Enciende y apaga el LED interno del Arduino cada un segundo.
+
+<Note>
+  No se necesita hardware adicional. El ejemplo usa el LED interno de la placa Arduino (equivalente al pin 13 en la mayoría de las placas).
+</Note>
+
+```cpp Parpadeo.ino
+// Incluye la librería Cod-ES
+#include <Cod-ES.h>
+
+inicio
+  configurarSalida(LED_INTERNO); // Configurar un pin determinado como salida para controlar un dispositivo, en este caso, el LED interno.
+fin
+
+bucle
+  salidaDigital(LED_INTERNO, ALTO); // Encender el LED interno.
+  esperar(1, SEGUNDOS); // Pausa de 1 segundo en la ejecución del programa.
+  salidaDigital(LED_INTERNO, BAJO); // Apagar el LED interno.
+  esperar(1, SEGUNDOS); // Pausa de 1 segundo en la ejecución del programa.
+fin
+```
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="inicio">
+    Equivale a `void setup(){}` en Arduino estándar. El código dentro de este bloque se ejecuta una sola vez al encender o reiniciar la placa.
+  </Step>
+  <Step title="configurarSalida(LED_INTERNO)">
+    Llama a `pinMode(LED_BUILTIN, OUTPUT)` internamente. Declara el LED interno como pin de salida para poder encenderlo y apagarlo.
+  </Step>
+  <Step title="fin (cierre de inicio)">
+    Equivale al `}` de cierre de `setup()`. También puede usarse `cerrar` en su lugar.
+  </Step>
+  <Step title="bucle">
+    Equivale a `void loop(){}`. El código dentro de este bloque se repite indefinidamente mientras la placa esté encendida.
+  </Step>
+  <Step title="salidaDigital(LED_INTERNO, ALTO)">
+    Llama a `digitalWrite(LED_BUILTIN, HIGH)`. Pone el pin en nivel alto (3.3 V o 5 V según la placa), encendiendo el LED.
+  </Step>
+  <Step title="esperar(1, SEGUNDOS)">
+    Llama a `delay(1000)`. Detiene la ejecución durante 1 segundo. El segundo argumento puede ser `SEGUNDOS`, `MILISEGUNDOS` o `MICROSEGUNDOS`.
+  </Step>
+  <Step title="salidaDigital(LED_INTERNO, BAJO)">
+    Llama a `digitalWrite(LED_BUILTIN, LOW)`. Pone el pin en nivel bajo (0 V), apagando el LED.
+  </Step>
+</Steps>
+
+### Equivalencia con Arduino estándar
+
+<Tabs>
+  <Tab title="Cod-ES">
+    ```cpp Parpadeo.ino
+    #include <Cod-ES.h>
+
+    inicio
+      configurarSalida(LED_INTERNO);
+    fin
+
+    bucle
+      salidaDigital(LED_INTERNO, ALTO);
+      esperar(1, SEGUNDOS);
+      salidaDigital(LED_INTERNO, BAJO);
+      esperar(1, SEGUNDOS);
+    fin
+    ```
+  </Tab>
+  <Tab title="Arduino estándar">
+    ```cpp Blink.ino
+    void setup() {
+      pinMode(LED_BUILTIN, OUTPUT);
+    }
+
+    void loop() {
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(1000);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(1000);
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Barrido
+
+Mueve un servomotor de 0° a 180° y de vuelta a 0° en un ciclo continuo, con una pausa de 15 ms entre cada paso para que el servo tenga tiempo de posicionarse.
+
+<Note>
+  Conecta el servomotor al pin PWM **9**. El cable de señal va al pin 9, el cable rojo a 5 V y el cable negro o marrón a GND.
+</Note>
+
+<Warning>
+  Este ejemplo requiere activar el módulo Servo antes de incluir la librería. Agrega `#define INCLUIR_SERVO` antes de `#include <Cod-ES.h>`.
+</Warning>
+
+```cpp Barrido.ino
+// Incluye la librería Cod-ES
+#define INCLUIR_SERVO
+
+#include <Cod-ES.h>
+
+Servo servo; // Crear un objeto con la clase Servo.
+
+entero angulo = 0; // Variable para almacenar la posicion del servomotor.
+
+inicio
+  servo.adjuntar(9); // Configurar el pin 9 como salida para el servomotor.
+fin
+
+bucle
+  repetir(angulo, angulo <= 180, angulo++) // Repetir de 0 a 180 grados.
+    servo.escribir(angulo); // Posicionar el servomotor en el ángulo elegido.
+    esperar(15, MILISEGUNDOS); // Pausa de 15 milisegundos en la ejecución del programa.
+  cerrar
+  repetir(angulo, angulo >= 0, angulo--) // Repetir de 180 a 0 grados.
+    servo.escribir(angulo); // Posicionar el servomotor en el ángulo elegido.
+    esperar(15, MILISEGUNDOS); // Pausa de 15 milisegundos en la ejecución del programa.
+  cerrar
+fin
+```
+
+### Explicación línea por línea
+
+<Steps>
+  <Step title="#define INCLUIR_SERVO">
+    Activa el módulo de servomotores de Cod-ES. Debe escribirse antes de `#include <Cod-ES.h>` para que la clase `Servo` y los métodos en español queden disponibles.
+  </Step>
+  <Step title="Servo servo">
+    Crea un objeto de la clase `Servo`. A través de este objeto se controla el motor.
+  </Step>
+  <Step title="entero angulo = 0">
+    Declara una variable entera llamada `angulo` con valor inicial 0. `entero` es el equivalente en Cod-ES de `int`.
+  </Step>
+  <Step title="servo.adjuntar(9)">
+    Equivale a `servo.attach(9)`. Asocia el objeto servo al pin 9 de la placa.
+  </Step>
+  <Step title="repetir(angulo, angulo <= 180, angulo++)">
+    Equivale a `for (angulo; angulo <= 180; angulo++)`. Recorre los ángulos de 0 a 180 incrementando de uno en uno.
+  </Step>
+  <Step title="servo.escribir(angulo)">
+    Equivale a `servo.write(angulo)`. Envía al servo la posición en grados indicada por la variable `angulo`.
+  </Step>
+  <Step title="cerrar">
+    Cierra el bloque `repetir`. Es equivalente al `}` de cierre del `for`. También puede usarse `fin`.
+  </Step>
+</Steps>
+
+### Equivalencia con Arduino estándar
+
+<Tabs>
+  <Tab title="Cod-ES">
+    ```cpp Barrido.ino
+    #define INCLUIR_SERVO
+    #include <Cod-ES.h>
+
+    Servo servo;
+    entero angulo = 0;
+
+    inicio
+      servo.adjuntar(9);
+    fin
+
+    bucle
+      repetir(angulo, angulo <= 180, angulo++)
+        servo.escribir(angulo);
+        esperar(15, MILISEGUNDOS);
+      cerrar
+      repetir(angulo, angulo >= 0, angulo--)
+        servo.escribir(angulo);
+        esperar(15, MILISEGUNDOS);
+      cerrar
+    fin
+    ```
+  </Tab>
+  <Tab title="Arduino estándar">
+    ```cpp Sweep.ino
+    #include <Servo.h>
+
+    Servo servo;
+    int angulo = 0;
+
+    void setup() {
+      servo.attach(9);
+    }
+
+    void loop() {
+      for (angulo; angulo <= 180; angulo++) {
+        servo.write(angulo);
+        delay(15);
+      }
+      for (angulo; angulo >= 0; angulo--) {
+        servo.write(angulo);
+        delay(15);
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Referencia rápida de palabras clave usadas
+
+| Cod-ES | Arduino estándar | Descripción |
+|--------|-----------------|-------------|
+| `inicio` | `void setup(){` | Bloque de configuración inicial |
+| `bucle` | `void loop(){` | Bloque de ejecución continua |
+| `fin` / `cerrar` | `}` | Cierre de bloque |
+| `entero` | `int` | Tipo de dato entero |
+| `configurarSalida(pin)` | `pinMode(pin, OUTPUT)` | Configura un pin como salida |
+| `salidaDigital(pin, valor)` | `digitalWrite(pin, valor)` | Escribe un valor digital en un pin |
+| `esperar(t, unidad)` | `delay(ms)` | Pausa la ejecución |
+| `ALTO` | `HIGH` | Nivel lógico alto |
+| `BAJO` | `LOW` | Nivel lógico bajo |
+| `SEGUNDOS` | — | Unidad de tiempo para `esperar()` |
+| `MILISEGUNDOS` | — | Unidad de tiempo para `esperar()` |
+| `LED_INTERNO` | `LED_BUILTIN` | Pin del LED integrado en la placa |
+| `repetir(var, cond, inc)` | `for(var; cond; inc){` | Bucle contado |

@@ -1,0 +1,212 @@
+---
+title: "Pines y entrada/salida"
+description: "Funciones y macros para configurar pines, leer entradas digitales y analógicas, escribir salidas y generar tonos."
+---
+
+Cod-ES proporciona funciones y macros en español para toda la gestión de pines de Arduino.
+
+## Configuración de pines
+
+### `configurarEntrada`
+
+Configura un pin como entrada, con opción de activar la resistencia pull-up interna.
+
+<ParamField path="body.pin" type="int" required>
+  Número de pin a configurar como entrada.
+</ParamField>
+
+<ParamField path="body.pullup" type="bool" default="false">
+  Si es `VERDADERO`, activa la resistencia pull-up interna (`INPUT_PULLUP`). Por defecto es `FALSO` (`INPUT`).
+</ParamField>
+
+```cpp
+inicio
+  configurarEntrada(2);               // entrada sin pull-up
+  configurarEntrada(3, VERDADERO);    // entrada con pull-up interna
+fin
+```
+
+### `configurarSalida`
+
+Configura un pin como salida digital.
+
+<ParamField path="body.pin" type="int" required>
+  Número de pin a configurar como salida.
+</ParamField>
+
+```cpp
+inicio
+  configurarSalida(13);
+  configurarSalida(LED_INTERNO);
+fin
+```
+
+## Lectura de pines
+
+### `leerPin`
+
+Lee el valor actual de un pin, ya sea en modo digital o analógico.
+
+<ParamField path="body.pin" type="int" required>
+  Número de pin a leer. Para lectura analógica usa los pines `A0`–`A5` (o los disponibles en tu placa).
+</ParamField>
+
+<ParamField path="body.tipo" type="int" required>
+  Modo de lectura: `DIGITAL` (retorna 0 o 1) o `ANALOGICO` (retorna 0–1023 en resolución de 10 bits).
+</ParamField>
+
+```cpp
+entero estadoBoton  = leerPin(2, DIGITAL);    // 0 o 1
+entero nivelLuz     = leerPin(A0, ANALOGICO); // 0 a 1023
+
+si estadoBoton es_igual ALTO entonces
+  Serial.println("Botón presionado");
+fin
+```
+
+## Escritura en pines
+
+### `encender` y `apagar`
+
+Atajos para escribir `ALTO` o `BAJO` en un pin digital.
+
+<ParamField path="body.pin" type="int" required>
+  Número de pin en el que se establece la salida.
+</ParamField>
+
+```cpp
+encender(13);       // equivale a digitalWrite(13, HIGH)
+esperar(500);
+apagar(13);         // equivale a digitalWrite(13, LOW)
+```
+
+### `salidaDigital`
+
+Macro que equivale a `digitalWrite`. Permite escribir cualquier valor (`ALTO`/`BAJO`) en un pin digital.
+
+```cpp
+salidaDigital(13, ALTO);
+salidaDigital(13, BAJO);
+salidaDigital(LED_INTERNO, ENCENDIDO);
+```
+
+### `salidaAnalogica`
+
+Macro que equivale a `analogWrite`. Genera una señal PWM en el pin especificado.
+
+```cpp
+// Controlar el brillo de un LED (pin PWM)
+salidaAnalogica(9, 128);    // 50% de ciclo de trabajo
+salidaAnalogica(9, 255);    // máximo brillo
+salidaAnalogica(9, 0);      // apagado
+```
+
+<Note>
+`salidaAnalogica` solo funciona en pines con soporte PWM (marcados con `~` en la placa). En Arduino Uno estos son los pines 3, 5, 6, 9, 10 y 11.
+</Note>
+
+## Referencia y resolución analógica
+
+| Función | Arduino | Descripción |
+|---------|---------|-------------|
+| `referenciaAnalogica(tipo)` | `analogReference(tipo)` | Establece la referencia de voltaje para lecturas analógicas |
+| `resolucionLecturaAnalogica(bits)` | `analogReadResolution(bits)` | Fija la resolución de `leerPin` en modo analógico (placas Due, Zero, MKR) |
+| `resolucionEscrituraAnalogica(bits)` | `analogWriteResolution(bits)` | Fija la resolución de `salidaAnalogica` (placas Due, Zero, MKR) |
+
+```cpp
+inicio
+  referenciaAnalogica(INTERNAL);           // usar referencia interna de 1.1 V (Uno)
+  resolucionLecturaAnalogica(12);          // resolución de 12 bits (0–4095)
+  resolucionEscrituraAnalogica(12);
+fin
+```
+
+## Generación de tonos
+
+### `tono`
+
+Genera una onda cuadrada en la frecuencia indicada sobre el pin especificado.
+
+<ParamField path="body.pin" type="int" required>
+  Pin de salida para el tono (cualquier pin digital).
+</ParamField>
+
+<ParamField path="body.frecuencia" type="unsigned int" required>
+  Frecuencia en Hz.
+</ParamField>
+
+<ParamField path="body.duracion" type="unsigned long">
+  Duración en milisegundos. Si se omite, el tono continúa hasta llamar a `apagarTono`.
+</ParamField>
+
+### `apagarTono`
+
+Detiene la generación del tono en el pin indicado.
+
+<ParamField path="body.pin" type="int" required>
+  Pin en el que se detendrá el tono.
+</ParamField>
+
+```cpp
+// Reproducir la nota La (440 Hz) durante 1 segundo
+tono(8, 440, 1000);
+
+// Tono continuo hasta detenerlo manualmente
+tono(8, 262);       // Do central
+esperar(2, SEGUNDOS);
+apagarTono(8);
+```
+
+## Medición de pulsos
+
+### `pulsacionEn`
+
+Mide la duración de un pulso en un pin digital. Devuelve la duración en microsegundos.
+
+<ParamField path="body.pin" type="int" required>
+  Pin en el que se mide el pulso.
+</ParamField>
+
+<ParamField path="body.estado" type="int" required>
+  Estado del pulso a medir: `ALTO` o `BAJO`.
+</ParamField>
+
+### `leerPulsoPreciso`
+
+Equivale a `pulseInLong`. Usa `micros()` internamente para mediciones más exactas en presencia de interrupciones activas.
+
+<ParamField path="body.pin" type="int" required>
+  Pin en el que se mide el pulso.
+</ParamField>
+
+<ParamField path="body.estado" type="int" required>
+  Estado del pulso a medir: `ALTO` o `BAJO`.
+</ParamField>
+
+```cpp
+// Medir la distancia con un sensor ultrasónico HC-SR04
+largo duracion;
+flotante distanciaCm;
+
+inicio
+  configurarSalida(9);   // TRIG
+  configurarEntrada(10); // ECHO
+fin
+
+bucle
+  salidaDigital(9, BAJO);
+  esperar(2, MICROSEGUNDOS);
+  salidaDigital(9, ALTO);
+  esperar(10, MICROSEGUNDOS);
+  salidaDigital(9, BAJO);
+
+  duracion     = pulsacionEn(10, ALTO);
+  distanciaCm  = (duracion * 0.034) / 2.0;
+
+  Serial.print("Distancia: ");
+  Serial.print(distanciaCm);
+  Serial.println(" cm");
+
+  esperar(500);
+fin
+```

@@ -1,0 +1,123 @@
+---
+title: "Constantes"
+description: "Constantes predefinidas en español para niveles de señal, modos de pin, tipos de interrupción y el LED interno."
+---
+
+Cod-ES define constantes con nombres en español que mapean directamente a las constantes estándar de Arduino.
+
+## Niveles de señal
+
+| Español | Arduino | Valor | Descripción |
+|---------|---------|-------|-------------|
+| `ALTO` | `HIGH` | 1 | Nivel lógico alto (3.3 V o 5 V según la placa) |
+| `BAJO` | `LOW` | 0 | Nivel lógico bajo (0 V) |
+| `ENCENDIDO` | `HIGH` | 1 | Estado encendido (alias de `ALTO`) |
+| `APAGADO` | `LOW` | 0 | Estado apagado (alias de `BAJO`) |
+
+```cpp
+// Encender un LED usando niveles de señal
+salidaDigital(13, ALTO);
+esperar(1000);
+salidaDigital(13, BAJO);
+
+// Usando alias de encendido/apagado
+salidaDigital(LED_INTERNO, ENCENDIDO);
+esperar(500);
+salidaDigital(LED_INTERNO, APAGADO);
+```
+
+<Note>
+`ALTO` y `ENCENDIDO` son sinónimos que mapean a `HIGH`. De igual forma, `BAJO` y `APAGADO` mapean a `LOW`. Usa el que resulte más legible en cada contexto.
+</Note>
+
+## Modos de pin
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `ENTRADA` | `INPUT` | Configura el pin como entrada sin resistencia pull-up |
+| `ENTRADA_POLARIZADA` | `INPUT_PULLUP` | Configura el pin como entrada con resistencia pull-up interna activada |
+| `SALIDA` | `OUTPUT` | Configura el pin como salida |
+
+```cpp
+inicio
+  // Configurar usando las constantes directamente con pinMode
+  pinMode(2, ENTRADA);
+  pinMode(3, ENTRADA_POLARIZADA);
+  pinMode(13, SALIDA);
+
+  // O bien, usando las funciones de Cod-ES
+  configurarEntrada(2);
+  configurarEntrada(3, VERDADERO);   // activa pull-up
+  configurarSalida(13);
+fin
+```
+
+<Tip>
+Usar `ENTRADA_POLARIZADA` elimina la necesidad de una resistencia pull-up externa en botones y pulsadores. El pin leerá `ALTO` cuando el botón esté suelto y `BAJO` cuando esté presionado (circuito a GND).
+</Tip>
+
+## Modos de interrupción
+
+Estas constantes se usan al registrar una interrupción externa con `habilitarEventoExterno`.
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `CAMBIO` | `CHANGE` | Se activa cuando el pin cambia de estado (de alto a bajo o viceversa) |
+| `ESCALANDO` | `RISING` | Se activa en el flanco de subida (de `BAJO` a `ALTO`) |
+| `CAYENDO` | `FALLING` | Se activa en el flanco de bajada (de `ALTO` a `BAJO`) |
+
+```cpp
+funcion alPresionar() {
+  Serial.println("¡Botón presionado!");
+}
+
+inicio
+  habilitarEventoExterno(
+    pinDigitalAEvento(2),
+    alPresionar,
+    CAYENDO
+  );
+fin
+```
+
+## Tipos de pin
+
+Estas constantes se usan con la función `leerPin` para indicar si la lectura es digital o analógica.
+
+| Español | Valor | Descripción |
+|---------|-------|-------------|
+| `DIGITAL` | `0` | Lectura digital (0 o 1) |
+| `ANALOGICO` | `1` | Lectura analógica (0–1023 en 10 bits) |
+
+```cpp
+entero lecturaD = leerPin(2, DIGITAL);    // 0 o 1
+entero lecturaA = leerPin(A0, ANALOGICO); // 0 a 1023
+```
+
+## LED interno
+
+| Español | Arduino | Descripción |
+|---------|---------|-------------|
+| `LED_INTERNO` | `LED_BUILTIN` | Pin del LED integrado en la placa |
+
+El pin exacto varía según la placa:
+
+| Placa | Pin `LED_INTERNO` |
+|-------|-------------------|
+| Arduino Uno / Nano | 13 |
+| Arduino Mega | 13 |
+| Arduino Leonardo | 13 |
+| ESP32 | 2 (varía según fabricante) |
+
+```cpp
+inicio
+  configurarSalida(LED_INTERNO);
+fin
+
+bucle
+  encender(LED_INTERNO);
+  esperar(1000);
+  apagar(LED_INTERNO);
+  esperar(1000);
+fin
+```

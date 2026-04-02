@@ -1,0 +1,186 @@
+---
+title: "Módulo Ultrasónico"
+description: "Medí distancias con sensores ultrasónicos tipo HC-SR04 usando la clase Ultrasonico. Retorna la distancia en centímetros con un solo método."
+---
+
+<Note>
+  Para usar este módulo, definí `INCLUIR_ULTRASONICO` **antes** de incluir `Cod-ES.h`.
+</Note>
+
+## Activación
+
+```cpp
+#define INCLUIR_ULTRASONICO
+#include <Cod-ES.h>
+```
+
+---
+
+## Conexión de hardware (HC-SR04)
+
+| Pin del sensor | Pin en Arduino |
+| -------------- | -------------- |
+| VCC            | 5V             |
+| GND            | GND            |
+| TRIG           | Pin digital (ej: 9)  |
+| ECHO           | Pin digital (ej: 10) |
+
+---
+
+## Clase `Ultrasonico`
+
+Cada sensor que uses en tu proyecto requiere su propia instancia de `Ultrasonico`. Al crear la instancia, el pin TRIG se configura como salida y el pin ECHO como entrada automáticamente.
+
+### Constructor
+
+<ParamField path="Ultrasonico" type="constructor">
+  Crea una instancia del sensor ultrasónico y configura los pines indicados.
+
+  **Parámetros:**
+
+  - `trigPin` — número del pin digital conectado a TRIG (salida del Arduino hacia el sensor).
+  - `echoPin` — número del pin digital conectado a ECHO (entrada del Arduino desde el sensor).
+</ParamField>
+
+```cpp
+Ultrasonico sensor(9, 10); // TRIG: pin 9 | ECHO: pin 10
+```
+
+---
+
+## Métodos
+
+<ParamField path="sensor.obtenerDistancia" type="float">
+  Emite un pulso ultrasónico por el pin TRIG, mide el tiempo que tarda el eco en llegar al pin ECHO, y calcula la distancia al objeto más cercano.
+
+  **Retorna:** distancia en centímetros como número de punto flotante (`float`).
+
+  El cálculo utiliza la fórmula:
+
+  ```
+  distancia (cm) = (tiempo_echo_µs × 0.0343) / 2
+  ```
+
+  Donde `0.0343` es la velocidad del sonido en cm/µs a temperatura ambiente (~20°C).
+</ParamField>
+
+---
+
+## Rango y precisión
+
+| Parámetro              | Valor                        |
+| ---------------------- | ---------------------------- |
+| Rango mínimo           | ~2 cm                        |
+| Rango máximo           | ~400 cm                      |
+| Ángulo de detección    | ~15° (cono)                  |
+| Resolución aproximada  | ~0.3 cm                      |
+
+<Warning>
+  El sensor puede dar lecturas incorrectas si el objeto está a menos de **2 cm** o el haz rebota en superficies muy inclinadas o absorbentes de sonido (como telas). Valores de `0` o muy elevados generalmente indican que no se detectó ningún eco dentro del tiempo de espera.
+</Warning>
+
+---
+
+## Ejemplo completo
+
+Este ejemplo es el oficial de la librería. Mide la distancia cada segundo y la envía por el monitor serial.
+
+```cpp
+#define INCLUIR_ULTRASONICO
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+#define trigPin 9
+#define echoPin 10
+
+Ultrasonico sensor(trigPin, echoPin); // Crear instancia del sensor
+
+inicio
+  Serie.iniciar(9600); // Iniciar comunicación serial a 9600 baudios
+fin
+
+bucle
+  flotante distancia = sensor.obtenerDistancia(); // Obtener distancia en cm
+
+  Serie.imprimir("Distancia: ");
+  Serie.imprimir(distancia);
+  Serie.imprimirEnNuevaLinea(" cm");
+
+  esperar(1, SEGUNDOS); // Esperar 1 segundo antes de la próxima lectura
+fin
+```
+
+---
+
+## Ejemplo — alerta de proximidad con LED
+
+```cpp
+#define INCLUIR_ULTRASONICO
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+#define trigPin 9
+#define echoPin 10
+#define ledPin  13
+
+Ultrasonico sensor(trigPin, echoPin);
+
+inicio
+  Serie.iniciar(9600);
+  configurarSalida(ledPin);
+fin
+
+bucle
+  flotante distancia = sensor.obtenerDistancia();
+
+  Serie.imprimir("Distancia: ");
+  Serie.imprimir(distancia);
+  Serie.imprimirEnNuevaLinea(" cm");
+
+  si distancia < 20.0 entonces
+    encender(ledPin);
+  si_no
+    apagar(ledPin);
+  fin
+
+  esperar(200, MILISEGUNDOS);
+fin
+```
+
+---
+
+## Ejemplo — promedio de lecturas para mayor estabilidad
+
+```cpp
+#define INCLUIR_ULTRASONICO
+#define INCLUIR_SERIE
+#include <Cod-ES.h>
+
+Ultrasonico sensor(9, 10);
+
+flotante promediarDistancia(entero muestras) {
+  flotante suma = 0;
+  repetir(entero i = 0, i < muestras, i++)
+    suma += sensor.obtenerDistancia();
+    esperar(10, MILISEGUNDOS);
+  fin
+  devolver suma / muestras;
+}
+
+inicio
+  Serie.iniciar(9600);
+fin
+
+bucle
+  flotante distancia = promediarDistancia(5); // Promedio de 5 lecturas
+  Serie.imprimir("Distancia promedio: ");
+  Serie.imprimir(distancia);
+  Serie.imprimirEnNuevaLinea(" cm");
+
+  esperar(500, MILISEGUNDOS);
+fin
+```
+
+<Tip>
+  Para obtener lecturas más estables, tomá varias muestras consecutivas y calculá el promedio, como se muestra en el último ejemplo. Esto reduce el ruido causado por reflexiones espurias.
+</Tip>

@@ -1,0 +1,141 @@
+---
+title: "Tiempo"
+description: "Función esperar y constantes de unidades de tiempo para pausar la ejecución del programa en milisegundos, segundos o microsegundos."
+---
+
+Cod-ES simplifica las pausas temporales con la función `esperar`, que acepta la cantidad de tiempo y la unidad deseada en un solo llamado.
+
+## Constantes de unidad
+
+| Constante | Valor | Equivalente Arduino |
+|-----------|-------|---------------------|
+| `MILISEGUNDOS` | `0` | `delay(ms)` |
+| `SEGUNDOS` | `1` | `delay(s * 1000)` |
+| `MICROSEGUNDOS` | `2` | `delayMicroseconds(us)` |
+
+<Note>
+`MILISEGUNDOS` es la unidad por defecto. Si no se pasa el segundo argumento, `esperar` interpreta el tiempo en milisegundos.
+</Note>
+
+## Función `esperar`
+
+Detiene la ejecución durante el tiempo especificado.
+
+<ParamField path="body.tiempo" type="float" required>
+  Cantidad de tiempo a esperar. El tipo `float` permite fracciones (por ejemplo `0.5` segundos).
+</ParamField>
+
+<ParamField path="body.modo" type="int" default="MILISEGUNDOS">
+  Unidad de tiempo: `MILISEGUNDOS`, `SEGUNDOS` o `MICROSEGUNDOS`.
+</ParamField>
+
+## Ejemplos
+
+<Tabs>
+  <Tab title="Milisegundos">
+    Uso predeterminado. Pausa la ejecución durante el número de milisegundos indicado.
+
+    ```cpp
+    bucle
+      encender(LED_INTERNO);
+      esperar(500);             // 500 ms
+      apagar(LED_INTERNO);
+      esperar(500, MILISEGUNDOS); // equivalente explícito
+    fin
+    ```
+  </Tab>
+  <Tab title="Segundos">
+    Permite expresar duraciones largas de forma legible sin convertir manualmente a milisegundos.
+
+    ```cpp
+    bucle
+      Serial.println("Iniciando medición...");
+      esperar(2, SEGUNDOS);     // espera 2 s (= delay(2000))
+
+      flotante lectura = leerPin(A0, ANALOGICO);
+      Serial.println(lectura);
+
+      esperar(0.5, SEGUNDOS);   // 500 ms usando fracciones
+    fin
+    ```
+  </Tab>
+  <Tab title="Microsegundos">
+    Para retardos de alta precisión, como la señal de disparo de un sensor ultrasónico.
+
+    ```cpp
+    bucle
+      salidaDigital(9, ALTO);
+      esperar(10, MICROSEGUNDOS);   // pulso de 10 µs
+      salidaDigital(9, BAJO);
+
+      largo duracion = pulsacionEn(10, ALTO);
+      Serial.println(duracion);
+
+      esperar(60, MILISEGUNDOS);    // pausa entre mediciones
+    fin
+    ```
+  </Tab>
+</Tabs>
+
+## Comportamiento interno
+
+Internamente, `esperar` delega en las funciones nativas de Arduino según la unidad elegida:
+
+```cpp
+// Implementación en time.h
+void esperar(float s, int modo = MILISEGUNDOS)
+{
+    switch (modo)
+    {
+    case MILISEGUNDOS:
+        delay(s);
+        break;
+    case SEGUNDOS:
+        delay(s * 1000);
+        break;
+    case MICROSEGUNDOS:
+        delayMicroseconds(s);
+        break;
+    default:
+        delay(s);
+        break;
+    }
+}
+```
+
+<Warning>
+`esperar` bloquea completamente la ejecución. Durante una pausa el programa no puede leer sensores, atender comunicación serial ni actualizar salidas. Para tareas concurrentes, usa `millis()` con lógica no bloqueante.
+</Warning>
+
+## Ejemplo completo: temporizador de 3 etapas
+
+```cpp
+#include <cod-es.h>
+
+inicio
+  configurarSalida(LED_INTERNO);
+  Serial.begin(9600);
+fin
+
+bucle
+  // Etapa 1: parpadeo rápido (milisegundos)
+  repetir(entero i = 0, i < 6, i++)
+    salidaDigital(LED_INTERNO, ENCENDIDO);
+    esperar(100);
+    salidaDigital(LED_INTERNO, APAGADO);
+    esperar(100);
+  fin
+
+  // Etapa 2: pausa larga (segundos)
+  Serial.println("Esperando 3 segundos...");
+  esperar(3, SEGUNDOS);
+
+  // Etapa 3: pulso corto (microsegundos) — ejemplo de señal
+  repetir(entero j = 0, j < 5, j++)
+    salidaDigital(9, ALTO);
+    esperar(500, MICROSEGUNDOS);
+    salidaDigital(9, BAJO);
+    esperar(500, MICROSEGUNDOS);
+  fin
+fin
+```
